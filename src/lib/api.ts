@@ -1,5 +1,6 @@
 
 
+
 import {
   Anime,
   AnimeDetail,
@@ -12,6 +13,7 @@ import {
   AnimeGroup,
   DonghuaEpisodeStreamData,
   StreamServer,
+  DownloadQuality,
 } from './types';
 import { cleanSlug } from './utils';
 
@@ -104,11 +106,28 @@ async function getDonghuaEpisodeStream(slug: string): Promise<EpisodeStreamData 
     if (!data || !data.streaming || !data.streaming.main_url) return null;
 
     const animeSlug = data.donghua_details?.slug ? cleanSlug(data.donghua_details.slug) : cleanSlug(slug);
+    
+    const downloadLinks: DownloadQuality[] = [];
+    if (data.download_url) {
+      for (const key in data.download_url) {
+        const qualityMatch = key.match(/download_url_(\d+p)/);
+        if (qualityMatch) {
+          const quality = qualityMatch[1];
+          const providers = data.download_url[key];
+          downloadLinks.push({
+            quality: quality,
+            links: Object.entries(providers).map(([provider, url]) => ({ provider, url }))
+          });
+        }
+      }
+    }
+
 
     return {
         episode: data.episode,
         stream_url: data.streaming.main_url.url,
         servers: data.streaming.servers,
+        downloadLinks: downloadLinks,
         anime: {
             slug: animeSlug
         },

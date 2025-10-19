@@ -9,7 +9,7 @@ import type { EpisodeStreamData } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { AlertTriangle, ArrowLeft, ChevronLeft, ChevronRight, Server } from 'lucide-react';
+import { AlertTriangle, ArrowLeft, ChevronLeft, ChevronRight, Download, Server } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useUser, useFirestore } from '@/firebase';
 import { addToHistory } from '@/lib/user-data';
@@ -17,6 +17,12 @@ import { cleanSlug } from '@/lib/utils';
 import { EpisodeComments } from '@/components/anime/EpisodeComments';
 import { cn } from '@/lib/utils';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+    Accordion,
+    AccordionContent,
+    AccordionItem,
+    AccordionTrigger,
+  } from "@/components/ui/accordion"
 
 function extractAnimeSlug(otakudesuUrl: string): string | null {
     try {
@@ -174,6 +180,36 @@ export default function WatchPage() {
                             </Button>
                         ))}
                     </div>
+                </CardContent>
+            </Card>
+        )}
+
+        {data.downloadLinks && data.downloadLinks.length > 0 && (
+            <Card>
+                <CardHeader>
+                    <CardTitle className="text-lg flex items-center gap-2">
+                        <Download className="w-5 h-5" /> Download Episode
+                    </CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <Accordion type="single" collapsible className="w-full">
+                        {data.downloadLinks.map((qualityGroup) => (
+                            <AccordionItem value={qualityGroup.quality} key={qualityGroup.quality}>
+                                <AccordionTrigger>{qualityGroup.quality}</AccordionTrigger>
+                                <AccordionContent>
+                                    <div className="flex flex-col items-start gap-2">
+                                        {qualityGroup.links.map(link => (
+                                            <Button asChild variant="link" key={link.provider}>
+                                                <a href={link.url} target="_blank" rel="noopener noreferrer">
+                                                    {link.provider}
+                                                </a>
+                                            </Button>
+                                        ))}
+                                    </div>
+                                </AccordionContent>
+                            </AccordionItem>
+                        ))}
+                    </Accordion>
                 </CardContent>
             </Card>
         )}

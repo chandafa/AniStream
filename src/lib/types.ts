@@ -80,6 +80,17 @@ export interface StreamServer {
   url: string;
 }
 
+export interface DownloadLink {
+  provider: string;
+  url: string;
+}
+
+export interface DownloadQuality {
+  quality: string;
+  links: DownloadLink[];
+}
+
+
 export interface EpisodeStreamData {
   episode?: string;
   anime: {
@@ -95,6 +106,7 @@ export interface EpisodeStreamData {
   } | null;
   stream_url: string;
   servers?: StreamServer[];
+  downloadLinks?: DownloadQuality[];
 }
 
 export interface DonghuaEpisodeStreamData {
@@ -105,6 +117,7 @@ export interface DonghuaEpisodeStreamData {
         };
         servers: StreamServer[];
     },
+    download_url?: Record<string, Record<string, string>>;
     donghua_details: {
         slug: string;
     },
