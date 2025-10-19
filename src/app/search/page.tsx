@@ -1,6 +1,7 @@
 
 
-import { getAnimeByGenre, searchAnime, getAllAnime } from "@/lib/api";
+
+import { getAnimeByGenre, searchAnime } from "@/lib/api";
 import { SearchClient } from "@/components/search/SearchClient";
 import type { Metadata } from "next";
 import { sharedMetadata } from "@/lib/metadata";
@@ -8,6 +9,8 @@ import { AnimeList } from "@/components/anime/AnimeList";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { Suspense } from "react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export const metadata: Metadata = {
   title: "Search",
@@ -18,30 +21,31 @@ type SearchPageProps = {
   searchParams: { [key: string]: string | string[] | undefined };
 };
 
-export default async function SearchPage({ searchParams }: SearchPageProps) {
-  const query = typeof searchParams.q === "string" ? searchParams.q : "";
-  const genre = typeof searchParams.genre === "string" ? searchParams.genre : "";
-  const page = typeof searchParams.page === "string" ? Number(searchParams.page) : 1;
-
-  const resultsData = await (
-    query
-      ? searchAnime(query, page)
-      : genre
-      ? getAnimeByGenre(genre, page)
-      : getAllAnime(page)
-  );
-
-  let title = "All Anime";
-  if (query) title = `Results for "${query}"`;
-  else if (genre) title = `Genre: ${genre}`;
-
-
-  return (
-    <div className="container py-8">
-      <SearchClient />
-      <div className="mt-8">
-        {resultsData && resultsData.anime.length > 0 ? (
-          <>
+async function SearchResults({ query, genre, page }: { query?: string, genre?: string, page: number }) {
+    const resultsData = await (
+        query
+          ? searchAnime(query, page)
+          : genre
+          ? getAnimeByGenre(genre, page)
+          // If no query or genre, we don't fetch all anime here anymore.
+          // The main search page will just show the search bars.
+          : Promise.resolve(null)
+      );
+    
+      let title = "";
+      if (query) title = `Results for "${query}"`;
+      else if (genre) title = `Genre: ${genre}`;
+    
+      if (!resultsData || resultsData.anime.length === 0) {
+        return (
+            <p className="text-center text-muted-foreground mt-16">
+                {query || genre ? "No results found. Try a different search." : "Enter a search term or select a genre to begin."}
+            </p>
+        )
+      }
+    
+      return (
+        <div className="mt-8">
             <AnimeList title={title} animes={resultsData.anime} />
             {resultsData.pagination && (resultsData.pagination.hasNextPage || page > 1) && (
               <Pagination
@@ -51,19 +55,37 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
                 genre={genre}
               />
             )}
-          </>
-        ) : (
-          !query && !genre ? (
-             <p className="text-center text-muted-foreground mt-16">
-              Loading anime or no anime found.
-            </p>
-          ) : (
-            <p className="text-center text-muted-foreground mt-16">
-              No results found. Try a different search.
-            </p>
-          )
-        )}
-      </div>
+        </div>
+      );
+}
+
+function SearchSkeleton() {
+    return (
+        <div className="mt-8">
+            <Skeleton className="h-8 w-48 mb-6" />
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-x-4 gap-y-8">
+            {Array.from({ length: 12 }).map((_, i) => (
+              <div key={i}>
+                <Skeleton className="aspect-[2/3] w-full" />
+                <Skeleton className="h-4 w-3/4 mt-2" />
+              </div>
+            ))}
+          </div>
+        </div>
+    )
+}
+
+export default async function SearchPage({ searchParams }: SearchPageProps) {
+  const query = typeof searchParams.q === "string" ? searchParams.q : "";
+  const genre = typeof searchParams.genre === "string" ? searchParams.genre : "";
+  const page = typeof searchParams.page === "string" ? Number(searchParams.page) : 1;
+
+  return (
+    <div className="container py-8">
+      <SearchClient />
+       <Suspense key={query + genre + page} fallback={<SearchSkeleton />}>
+        <SearchResults query={query} genre={genre} page={page} />
+      </Suspense>
     </div>
   );
 }

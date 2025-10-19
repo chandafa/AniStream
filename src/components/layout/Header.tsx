@@ -27,7 +27,7 @@ import { useToast } from '@/hooks/use-toast';
 
 const navLinks = [
   { href: '/', label: 'Home' },
-  { href: '/search', label: 'Anime List' },
+  { href: '/anime-list', label: 'Anime List' },
   { href: '/schedule', label: 'Jadwal Rilis' },
   { href: '/category/ongoing', label: 'On-Going Anime' },
   { href: '/genres', label: 'Genre List' },

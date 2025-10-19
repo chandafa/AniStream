@@ -8,6 +8,7 @@ import {
   PaginatedAnime,
   ScheduleDay,
   UnlimitedAnimeResponse,
+  AnimeGroup,
 } from './types';
 
 const API_BASE_URL = 'https://www.sankavollerei.com/anime';
@@ -78,24 +79,21 @@ export async function searchAnime(keyword: string, page: number = 1): Promise<Pa
     };
 }
 
-export async function getAllAnime(page: number = 1): Promise<PaginatedAnime | null> {
+export async function getAllAnime(): Promise<AnimeGroup[] | null> {
     const data = await fetcher<UnlimitedAnimeResponse>(`unlimited`);
-    if (!data || !data.anime_list) return null;
-
-    const pageSize = 24;
-    const startIndex = (page - 1) * pageSize;
-    const endIndex = startIndex + pageSize;
-    const paginatedAnime = data.anime_list.slice(startIndex, endIndex);
-
-    return {
-        anime: paginatedAnime,
-        pagination: {
-            currentPage: page,
-            hasNextPage: endIndex < data.anime_list.length,
-            totalPages: Math.ceil(data.anime_list.length / pageSize),
-        }
-    };
+    if (!data || !data.data || !data.data.list) return null;
+    
+    // The new structure is an array of groups, so we can return it directly.
+    return data.data.list.map(group => ({
+        ...group,
+        animeList: group.animeList.map(anime => ({
+            slug: anime.animeId,
+            title: anime.title,
+            poster: '', // The new endpoint doesn't provide a poster, so we'll leave it empty.
+        }))
+    }));
 }
+
 
 export async function getAnimeByGenre(slug: string, page: number = 1): Promise<PaginatedAnime | null> {
   const data = await fetcher<{data: {anime: Anime[], pagination: any}}>(`genre/${slug}?page=${page}`);

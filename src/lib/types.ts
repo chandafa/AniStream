@@ -14,10 +14,36 @@ export interface Anime {
   current_episode?: string; // from ongoing_anime
 }
 
+// Type for the raw anime item from the /unlimited endpoint
+interface UnlimitedAnimeItem {
+  title: string;
+  animeId: string;
+  href: string;
+  otakudesuUrl: string;
+}
+
+// Type for a group of anime starting with a specific letter
+export interface AnimeGroup {
+  startWith: string;
+  animeList: {
+    title: string;
+    slug: string; // Corresponds to animeId
+  }[];
+}
+
+// Type for the full response from the /unlimited endpoint
 export interface UnlimitedAnimeResponse {
   status: string;
   creator: string;
-  anime_list: Anime[];
+  statusCode: number;
+  statusMessage: string;
+  ok: boolean;
+  data: {
+    list: {
+      startWith: string;
+      animeList: UnlimitedAnimeItem[];
+    }[];
+  };
 }
 
 
