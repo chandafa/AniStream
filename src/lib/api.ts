@@ -63,8 +63,8 @@ export async function getDonghuaHome(page: number = 1): Promise<Anime[] | null> 
 }
 
 async function searchDonghua(keyword: string, page: number = 1): Promise<Anime[] | null> {
-    const data = await fetcher<{ donghua: Anime[] }>(`donghua/search/${keyword}/${page}`);
-    return data?.donghua ?? [];
+    const data = await fetcher<{ data: Anime[] }>(`donghua/search/${keyword}/${page}`);
+    return data?.data ?? [];
 }
 
 async function getDonghuaDetails(slug: string): Promise<AnimeDetail | null> {
