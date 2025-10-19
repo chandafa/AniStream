@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { useFormState, useFormStatus } from 'react-dom';
+import { useActionState } from 'react';
+import { useFormStatus } from 'react-dom';
 import { animeRecommendations, AnimeRecommendationsOutput } from '@/ai/flows/anime-recommendations';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -24,7 +24,7 @@ function SubmitButton() {
   }
 
 export default function RecommendationsPage() {
-  const [state, formAction] = useFormState(async (prevState: any, formData: FormData) => {
+  const [state, formAction] = useActionState(async (prevState: any, formData: FormData) => {
     try {
       const viewingHistory = (formData.get('viewingHistory') as string).split(',').map(s => s.trim()).filter(Boolean);
       const dislikedGenres = (formData.get('dislikedGenres') as string).split(',').map(s => s.trim()).filter(Boolean);
