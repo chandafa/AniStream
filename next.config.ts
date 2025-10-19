@@ -33,6 +33,12 @@ const nextConfig: NextConfig = {
         hostname: 'www.sankavollerei.com',
         port: '',
         pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'otakudesu.best',
+        port: '',
+        pathname: '/**',
       }
     ],
   },
