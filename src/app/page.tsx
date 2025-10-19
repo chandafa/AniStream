@@ -3,12 +3,11 @@ import { AnimeList } from '@/components/anime/AnimeList';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Suspense } from 'react';
 import { PopularToday } from '@/components/home/PopularToday';
-import { HomeCarousel } from '@/components/home/HomeCarousel';
 import { OngoingAnimeList } from '@/components/home/OngoingAnimeList';
 import { CompletedAnimeList } from '@/components/home/CompletedAnimeList';
 import type { Anime } from '@/lib/types';
 import { HomeHero } from '@/components/home/HomeHero';
-import { useIsMobile } from '@/hooks/use-mobile';
+import { DonghuaList } from '@/components/home/DonghuaList';
 
 
 const staticCarouselData: Anime[] = [
@@ -62,6 +61,8 @@ async function HomeContent() {
         {homeData.trending && homeData.trending.length > 0 && (
           <PopularToday animes={homeData.trending.slice(0, 5)} />
         )}
+
+        <DonghuaList />
         
         {homeData.complete_anime && homeData.complete_anime.length > 0 && (
           <CompletedAnimeList initialAnimes={homeData.complete_anime} />

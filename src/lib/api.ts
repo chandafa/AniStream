@@ -1,4 +1,5 @@
 
+
 import {
   Anime,
   AnimeDetail,
@@ -52,6 +53,11 @@ export async function getHomeData(): Promise<HomeData | null> {
     featured: data.data.featured ?? [],
     genres: [],
   };
+}
+
+export async function getDonghuaHome(page: number = 1): Promise<Anime[] | null> {
+    const data = await fetcher<{ latest_release: Anime[] }>(`donghua/home/${page}`);
+    return data?.latest_release ?? null;
 }
 
 

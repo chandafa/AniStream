@@ -39,6 +39,12 @@ const nextConfig: NextConfig = {
         hostname: 'otakudesu.best',
         port: '',
         pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'anichin.cafe',
+        port: '',
+        pathname: '/**',
       }
     ],
   },
