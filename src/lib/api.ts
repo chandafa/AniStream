@@ -6,6 +6,7 @@ import {
   Genre,
   HomeData,
   PaginatedAnime,
+  ScheduleDay,
   UnlimitedAnimeResponse,
 } from './types';
 
@@ -134,4 +135,9 @@ export async function getCompletedAnime(page: number = 1): Promise<PaginatedAnim
       totalPages: data.data.paginationData.last_visible_page,
     }
   }
+}
+
+export async function getSchedule(): Promise<ScheduleDay[] | null> {
+  const data = await fetcher<{ data: ScheduleDay[] }>('schedule', ['schedule']);
+  return data?.data ?? null;
 }

@@ -76,3 +76,14 @@ export interface PaginatedAnime {
     totalPages: number;
   };
 }
+
+export interface ScheduleAnime {
+    anime_name: string;
+    slug: string;
+    poster: string;
+}
+
+export interface ScheduleDay {
+    day: string;
+    anime_list: ScheduleAnime[];
+}
