@@ -74,14 +74,24 @@ export async function searchAnime(keyword: string, page: number = 1): Promise<Pa
         anime: data.search_results,
         pagination: {
             currentPage: page,
-            hasNextPage: data.search_results.length > 0, // Assume there's a next page if results are returned
-            totalPages: page + 1, // A guess
+            hasNextPage: false, // Search API doesn't provide pagination info
+            totalPages: page,
         }
     };
 }
 
 export async function getAnimeByGenre(slug: string, page: number = 1): Promise<PaginatedAnime | null> {
-  return fetcher<PaginatedAnime>(`genre/${slug}?page=${page}`);
+  const data = await fetcher<{anime: Anime[], pagination: any}>(`genre/${slug}?page=${page}`);
+  if (!data) return null;
+
+  return {
+    anime: data.anime,
+    pagination: {
+      currentPage: data.pagination.current_page,
+      hasNextPage: data.pagination.has_next_page,
+      totalPages: data.pagination.last_visible_page,
+    },
+  };
 }
 
 export async function getOngoingAnime(page: number = 1): Promise<PaginatedAnime | null> {
