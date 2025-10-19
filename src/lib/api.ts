@@ -11,6 +11,7 @@ import {
   UnlimitedAnimeResponse,
   AnimeGroup,
   DonghuaEpisodeStreamData,
+  StreamServer,
 } from './types';
 import { cleanSlug } from './utils';
 
@@ -107,6 +108,7 @@ async function getDonghuaEpisodeStream(slug: string): Promise<EpisodeStreamData 
     return {
         episode: data.episode,
         stream_url: data.streaming.main_url.url,
+        servers: data.streaming.servers,
         anime: {
             slug: animeSlug
         },
@@ -147,6 +149,10 @@ export async function getEpisodeStream(slug: string): Promise<EpisodeStreamData 
   // Try standard anime endpoint first
   const animeData = await fetcher<{ data: EpisodeStreamData }>(`episode/${slug}`, [`episode:${slug}`]);
   if (animeData?.data?.stream_url) {
+      // Standard API might not provide a list of servers, so we create one from the main stream_url
+      if (!animeData.data.servers) {
+        animeData.data.servers = [{ name: 'Default', url: animeData.data.stream_url }];
+      }
       return animeData.data;
   }
   

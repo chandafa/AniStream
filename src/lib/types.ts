@@ -94,6 +94,7 @@ export interface EpisodeStreamData {
     slug: string;
   } | null;
   stream_url: string;
+  servers?: StreamServer[];
 }
 
 export interface DonghuaEpisodeStreamData {
@@ -101,7 +102,8 @@ export interface DonghuaEpisodeStreamData {
     streaming: {
         main_url: {
             url: string;
-        }
+        };
+        servers: StreamServer[];
     },
     donghua_details: {
         slug: string;

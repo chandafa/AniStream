@@ -9,12 +9,14 @@ import type { EpisodeStreamData } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { AlertTriangle, ArrowLeft, ChevronLeft, ChevronRight } from 'lucide-react';
+import { AlertTriangle, ArrowLeft, ChevronLeft, ChevronRight, Server } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useUser, useFirestore } from '@/firebase';
 import { addToHistory } from '@/lib/user-data';
 import { cleanSlug } from '@/lib/utils';
 import { EpisodeComments } from '@/components/anime/EpisodeComments';
+import { cn } from '@/lib/utils';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 function extractAnimeSlug(otakudesuUrl: string): string | null {
     try {
@@ -40,6 +42,7 @@ export default function WatchPage() {
   const [data, setData] = useState<EpisodeStreamData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [currentStreamUrl, setCurrentStreamUrl] = useState<string | null>(null);
 
   useEffect(() => {
     if (!slug) return;
@@ -51,6 +54,7 @@ export default function WatchPage() {
         const result = await getEpisodeStream(slug);
         if (result && result.stream_url) {
           setData(result);
+          setCurrentStreamUrl(result.stream_url);
           const animeSlug = extractAnimeSlug(result.anime.slug);
           if (user && firestore && animeSlug) {
             // Add to history without waiting
@@ -106,12 +110,13 @@ export default function WatchPage() {
       <div className="relative w-full bg-black video-vignette">
         <div className="mx-auto max-w-5xl">
             <div className="aspect-video w-full">
-                {data.stream_url ? (
+                {currentStreamUrl ? (
                 <iframe
-                    src={data.stream_url}
+                    src={currentStreamUrl}
                     allowFullScreen
                     className="w-full h-full"
                     title="Anime Video Player"
+                    key={currentStreamUrl} // Force re-render on URL change
                 ></iframe>
                 ) : (
                 <div className="w-full h-full bg-card flex items-center justify-center">
@@ -150,6 +155,29 @@ export default function WatchPage() {
             </div>
         </div>
         
+        {data.servers && data.servers.length > 1 && (
+            <Card>
+                <CardHeader>
+                    <CardTitle className="text-lg flex items-center gap-2">
+                        <Server className="w-5 h-5" /> Streaming Servers
+                    </CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <div className="flex flex-wrap gap-2">
+                        {data.servers.map((server) => (
+                            <Button
+                                key={server.name}
+                                variant={currentStreamUrl === server.url ? 'default' : 'outline'}
+                                onClick={() => setCurrentStreamUrl(server.url)}
+                            >
+                                {server.name}
+                            </Button>
+                        ))}
+                    </div>
+                </CardContent>
+            </Card>
+        )}
+
         <div className="py-6">
             <EpisodeComments episodeId={slug} />
         </div>
@@ -174,6 +202,9 @@ function WatchPageSkeleton() {
                         <Skeleton className="h-9 w-24" />
                         <Skeleton className="h-9 w-24" />
                     </div>
+                </div>
+                 <div className="py-6">
+                    <Skeleton className="h-24 w-full" />
                 </div>
                 <div className="py-6">
                     <Skeleton className="h-64 w-full" />
