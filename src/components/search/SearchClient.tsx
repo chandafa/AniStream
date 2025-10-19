@@ -45,12 +45,13 @@ export function SearchClient() {
   };
 
   const handleGenreChange = (slug: string) => {
+    const params = new URLSearchParams(searchParams.toString());
     if (slug) {
-        const params = new URLSearchParams();
         params.set('genre', slug);
         router.push(`${pathname}?${params.toString()}`);
     } else {
-        router.push(pathname); // Clear genre if "All" is selected
+        params.delete('genre');
+        router.push(params.toString() ? `${pathname}?${params.toString()}` : pathname);
     }
   };
 
@@ -68,10 +69,9 @@ export function SearchClient() {
       </form>
       <Select onValueChange={handleGenreChange} defaultValue={searchParams.get('genre') || ''}>
         <SelectTrigger className="w-full md:w-[200px]">
-          <SelectValue placeholder="Filter by genre" />
+          <SelectValue placeholder="All Genres" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="">All Genres</SelectItem>
           {genres.map((genre) => (
             <SelectItem key={genre.slug} value={genre.slug}>
               {genre.name}
