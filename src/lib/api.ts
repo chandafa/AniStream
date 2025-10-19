@@ -20,7 +20,7 @@ async function fetcher<T>(path: string, tags?: string[]): Promise<T | null> {
       return null;
     }
     const json = await res.json();
-    return json.data || json;
+    return json;
   } catch (error) {
     console.error(`Error fetching from API path: ${path}`, error);
     return null;
@@ -29,32 +29,36 @@ async function fetcher<T>(path: string, tags?: string[]): Promise<T | null> {
 
 export async function getHomeData(): Promise<HomeData | null> {
   const data = await fetcher<{
-    trending_anime: Anime[];
-    ongoing_anime: Anime[];
-    latest_episode_anime: Anime[];
-    completed_anime: Anime[];
-    featured?: Anime[];
+    data: {
+      trending_anime: Anime[];
+      ongoing_anime: Anime[];
+      latest_episode_anime: Anime[];
+      completed_anime: Anime[];
+      featured?: Anime[];
+    }
   }>('home', ['home']);
   
-  if (!data) return null;
+  if (!data || !data.data) return null;
 
   return {
-    trending: data.trending_anime ?? [],
-    ongoing_anime: data.ongoing_anime ?? [],
-    latest_episodes: data.latest_episode_anime ?? [],
-    completed_anime: data.completed_anime ?? [],
-    featured: data.featured ?? [],
+    trending: data.data.trending_anime ?? [],
+    ongoing_anime: data.data.ongoing_anime ?? [],
+    latest_episodes: data.data.latest_episode_anime ?? [],
+    completed_anime: data.data.completed_anime ?? [],
+    featured: data.data.featured ?? [],
     genres: [],
   };
 }
 
 
 export async function getAnimeDetails(slug: string): Promise<AnimeDetail | null> {
-  return fetcher<AnimeDetail>(`anime/${slug}`, [`anime:${slug}`]);
+  const data = await fetcher<{ data: AnimeDetail }>(`anime/${slug}`, [`anime:${slug}`]);
+  return data?.data ?? null;
 }
 
 export async function getEpisodeStream(slug: string): Promise<EpisodeStreamData | null> {
-  return fetcher<EpisodeStreamData>(`episode/${slug}`, [`episode:${slug}`]);
+  const data = await fetcher<{ data: EpisodeStreamData }>(`episode/${slug}`, [`episode:${slug}`]);
+  return data?.data ?? null;
 }
 
 export async function searchAnime(keyword: string, page: number = 1): Promise<PaginatedAnime | null> {
@@ -81,41 +85,41 @@ export async function searchAnime(keyword: string, page: number = 1): Promise<Pa
 }
 
 export async function getAnimeByGenre(slug: string, page: number = 1): Promise<PaginatedAnime | null> {
-  const data = await fetcher<{anime: Anime[], pagination: any}>(`genre/${slug}?page=${page}`);
-  if (!data) return null;
+  const data = await fetcher<{data: {anime: Anime[], pagination: any}}>(`genre/${slug}?page=${page}`);
+  if (!data || !data.data) return null;
 
   return {
-    anime: data.anime,
+    anime: data.data.anime,
     pagination: {
-      currentPage: data.pagination.current_page,
-      hasNextPage: data.pagination.has_next_page,
-      totalPages: data.pagination.last_visible_page,
+      currentPage: data.data.pagination.current_page,
+      hasNextPage: data.data.pagination.has_next_page,
+      totalPages: data.data.pagination.last_visible_page,
     },
   };
 }
 
 export async function getOngoingAnime(page: number = 1): Promise<PaginatedAnime | null> {
-  const data = await fetcher<{ paginationData: any, ongoingAnimeData: Anime[] }>(`ongoing-anime?page=${page}`);
-  if (!data) return null;
+  const data = await fetcher<{ data: { paginationData: any, ongoingAnimeData: Anime[] } }>(`ongoing-anime?page=${page}`);
+  if (!data || !data.data) return null;
   return {
-    anime: data.ongoingAnimeData,
+    anime: data.data.ongoingAnimeData,
     pagination: {
-      currentPage: data.paginationData.current_page,
-      hasNextPage: data.paginationData.has_next_page,
-      totalPages: data.paginationData.last_visible_page,
+      currentPage: data.data.paginationData.current_page,
+      hasNextPage: data.data.paginationData.has_next_page,
+      totalPages: data.data.paginationData.last_visible_page,
     }
   }
 }
 
 export async function getCompletedAnime(page: number = 1): Promise<PaginatedAnime | null> {
-  const data = await fetcher<{ paginationData: any, completedAnimeData: Anime[] }>(`completed-anime?page=${page}`);
-  if (!data) return null;
+  const data = await fetcher<{ data: { paginationData: any, completeAnimeData: Anime[] } }>(`complete-anime/${page}`);
+  if (!data || !data.data) return null;
   return {
-    anime: data.completedAnimeData,
+    anime: data.data.completeAnimeData,
     pagination: {
-      currentPage: data.paginationData.current_page,
-      hasNextPage: data.paginationData.has_next_page,
-      totalPages: data.paginationData.last_visible_page,
+      currentPage: data.data.paginationData.current_page,
+      hasNextPage: data.data.paginationData.has_next_page,
+      totalPages: data.data.paginationData.last_visible_page,
     }
   }
 }
