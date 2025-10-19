@@ -41,11 +41,19 @@ export interface StreamServer {
 }
 
 export interface EpisodeStreamData {
-  servers: StreamServer[];
-  nextEpisodeSlug?: string;
-  prevEpisodeSlug?: string;
-  animeSlug?: string;
-  currentEpisode?: string;
+  episode: string;
+  anime: {
+    slug: string;
+  };
+  has_next_episode: boolean;
+  next_episode: {
+    slug: string;
+  } | null;
+  has_previous_episode: boolean;
+  previous_episode: {
+    slug: string;
+  } | null;
+  stream_url: string;
 }
 
 export interface Genre {

@@ -6,17 +6,24 @@ import { notFound, useParams } from 'next/navigation';
 import { getEpisodeStream } from '@/lib/api';
 import type { EpisodeStreamData } from '@/lib/types';
 import { Button } from '@/components/ui/button';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertTriangle, ArrowLeft, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+
+function extractAnimeSlug(otakudesuUrl: string): string | null {
+    try {
+        const url = new URL(otakudesuUrl);
+        const pathParts = url.pathname.split('/').filter(Boolean);
+        if (pathParts[0] === 'anime' && pathParts[1]) {
+            return pathParts[1];
+        }
+        return null;
+    } catch (e) {
+        console.error("Invalid URL for slug extraction", otakudesuUrl);
+        return null;
+    }
+}
 
 export default function WatchPage() {
   const params = useParams();
@@ -26,7 +33,6 @@ export default function WatchPage() {
   const [data, setData] = useState<EpisodeStreamData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [currentServerUrl, setCurrentServerUrl] = useState<string>('');
 
   useEffect(() => {
     if (!slug) return;
@@ -36,9 +42,8 @@ export default function WatchPage() {
       setError(null);
       try {
         const result = await getEpisodeStream(slug);
-        if (result && result.servers.length > 0) {
+        if (result && result.stream_url) {
           setData(result);
-          setCurrentServerUrl(result.servers[0].url);
         } else {
           setError('No streaming servers found for this episode.');
           toast({
@@ -82,12 +87,14 @@ export default function WatchPage() {
     notFound();
   }
   
+  const animeSlug = extractAnimeSlug(data.anime.slug);
+
   return (
     <div className="bg-black">
       <div className="aspect-video w-full max-h-screen">
-        {currentServerUrl ? (
+        {data.stream_url ? (
           <iframe
-            src={currentServerUrl}
+            src={data.stream_url}
             allowFullScreen
             className="w-full h-full"
             title="Anime Video Player"
@@ -101,46 +108,28 @@ export default function WatchPage() {
 
       <div className="container py-4 space-y-4">
         <div>
-            {data.animeSlug && (
+            {animeSlug && (
                 <Button variant="ghost" asChild>
-                    <Link href={`/anime/${data.animeSlug}`}>
+                    <Link href={`/anime/${animeSlug}`}>
                         <ArrowLeft className="h-4 w-4 mr-2" /> Back to Details
                     </Link>
                 </Button>
             )}
             <h1 className="font-headline text-2xl font-bold text-white">
-                {data.currentEpisode || 'Watching Anime'}
+                {data.episode || 'Watching Anime'}
             </h1>
         </div>
         
         <div className="flex flex-col md:flex-row gap-4 justify-between items-center">
-          <div className="flex gap-2 items-center">
-            <p className="text-sm text-muted-foreground">Server:</p>
-            <Select
-              onValueChange={(url) => setCurrentServerUrl(url)}
-              defaultValue={currentServerUrl}
-            >
-              <SelectTrigger className="w-[180px] bg-card text-white">
-                <SelectValue placeholder="Select Server" />
-              </SelectTrigger>
-              <SelectContent>
-                {data.servers.map((server) => (
-                  <SelectItem key={server.name} value={server.url}>
-                    {server.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
+            <div className='w-full md:w-auto'></div>
           <div className="flex gap-2">
-            <Button variant="outline" disabled={!data.prevEpisodeSlug} asChild>
-              <Link href={data.prevEpisodeSlug ? `/watch/${data.prevEpisodeSlug}` : '#'}>
+            <Button variant="outline" disabled={!data.has_previous_episode} asChild>
+              <Link href={data.previous_episode ? `/watch/${data.previous_episode.slug}` : '#'}>
                 <ChevronLeft className="h-4 w-4" /> Prev
               </Link>
             </Button>
-            <Button variant="outline" disabled={!data.nextEpisodeSlug} asChild>
-              <Link href={data.nextEpisodeSlug ? `/watch/${data.nextEpisodeSlug}` : '#'}>
+            <Button variant="outline" disabled={!data.has_next_episode} asChild>
+              <Link href={data.next_episode ? `/watch/${data.next_episode.slug}` : '#'}>
                 Next <ChevronRight className="h-4 w-4" />
               </Link>
             </Button>
