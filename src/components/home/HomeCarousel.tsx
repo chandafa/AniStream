@@ -15,14 +15,15 @@ import {
 } from '@/components/ui/carousel';
 import Autoplay from "embla-carousel-autoplay";
 import { cleanSlug } from '@/lib/utils';
+import { cn } from '@/lib/utils';
 
 export function HomeCarousel({ animes }: { animes: Anime[] }) {
   return (
     <Carousel 
-        className="w-full"
+        className="w-full -mt-12 md:mt-0"
         plugins={[
             Autoplay({
-              delay: 5000,
+              delay: 3000,
               stopOnInteraction: true,
             }),
         ]}
@@ -31,29 +32,32 @@ export function HomeCarousel({ animes }: { animes: Anime[] }) {
         {animes.map((anime) => (
           <CarouselItem key={anime.slug}>
             <div className="relative h-[50vh] md:h-[60vh] w-full">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={anime.poster}
-                alt={`Poster for ${anime.title}`}
-                className="object-cover w-full h-full"
-                data-ai-hint="anime background"
-              />
+              <div className={cn("absolute inset-0 md:rounded-none overflow-hidden", "md:p-0")}>
+                <Image
+                  src={anime.poster}
+                  alt={`Poster for ${anime.title}`}
+                  fill
+                  className="object-cover w-full h-full md:rounded-none"
+                  data-ai-hint="anime background"
+                  priority
+                />
+              </div>
               <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/70 to-transparent" />
               <div className="absolute inset-0 bg-gradient-to-r from-background via-background/50 to-transparent" />
               <div className="container relative z-10 flex h-full items-end pb-8 md:pb-16">
                 <div className="max-w-xl space-y-3 md:space-y-4">
-                  <h1 className="font-headline text-3xl md:text-5xl font-bold text-foreground animate-fade-in-down">
+                  <h1 className="font-headline text-2xl md:text-5xl font-bold text-foreground animate-fade-in-down">
                     {anime.title}
                   </h1>
 
                   <div className="flex gap-2 md:gap-4">
-                    <Button asChild size="lg">
+                    <Button asChild size="lg" className="h-9 md:h-9">
                       <Link href={anime.latestEpisode ? `/watch/${cleanSlug(anime.latestEpisode.slug)}` : `/anime/${cleanSlug(anime.slug)}`}>
                         <PlayCircle />
                         Play
                       </Link>
                     </Button>
-                    <Button asChild variant="secondary" size="lg">
+                    <Button asChild variant="secondary" size="lg" className="h-9 md:h-9">
                       <Link href={`/anime/${cleanSlug(anime.slug)}`}>
                         <ListPlus />
                         My List

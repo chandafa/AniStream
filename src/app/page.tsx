@@ -4,7 +4,6 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Suspense } from 'react';
 import { PopularToday } from '@/components/home/PopularToday';
 import { HomeCarousel } from '@/components/home/HomeCarousel';
-import { HomeHero } from '@/components/home/HomeHero';
 import { OngoingAnimeList } from '@/components/home/OngoingAnimeList';
 import { CompletedAnimeList } from '@/components/home/CompletedAnimeList';
 import type { Anime } from '@/lib/types';
@@ -43,12 +42,7 @@ async function HomeContent() {
 
   return (
     <>
-      <div className="md:hidden">
-        <HomeHero anime={staticCarouselData[0]} />
-      </div>
-      <div className="hidden md:block">
-        <HomeCarousel animes={staticCarouselData} />
-      </div>
+      <HomeCarousel animes={staticCarouselData} />
       
       <div className="container space-y-6 py-4 md:space-y-10 md:py-10">
         
