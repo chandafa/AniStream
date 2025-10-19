@@ -3,6 +3,7 @@ import { AnimeCard } from '../anime/AnimeCard';
 import Link from 'next/link';
 import { Button } from '../ui/button';
 import { ChevronRight } from 'lucide-react';
+import { ScrollArea, ScrollBar } from '../ui/scroll-area';
 
 interface PopularTodayProps {
   animes: Anime[];
@@ -14,9 +15,29 @@ export function PopularToday({ animes }: PopularTodayProps) {
   return (
     <section>
         <div className="flex items-center justify-between mb-6">
-            <h2 className="font-headline text-2xl md:text-3xl font-bold">Popular Today</h2>
+            <h2 className="font-headline text-2xl md:text-3xl font-bold">Trending</h2>
+            <Button variant="ghost" asChild className='hidden md:flex'>
+                <Link href="/category/ongoing">
+                    View More <ChevronRight className="h-4 w-4" />
+                </Link>
+            </Button>
+            <Button variant="link" asChild className='md:hidden text-primary'>
+                <Link href="/category/ongoing">
+                    See all
+                </Link>
+            </Button>
         </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-x-8 gap-y-4">
+        <div className="md:hidden">
+            <ScrollArea className="w-full whitespace-nowrap">
+                <div className="flex w-max space-x-4 pb-4">
+                    {animes.map((anime, index) => (
+                        <AnimeCard key={anime.slug} anime={anime} rank={index + 1} className="w-[150px]" />
+                    ))}
+                </div>
+                <ScrollBar orientation="horizontal" />
+            </ScrollArea>
+        </div>
+      <div className="hidden md:grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-x-8 gap-y-4">
         {animes.map((anime, index) => (
           <AnimeCard key={anime.slug} anime={anime} rank={index + 1} />
         ))}

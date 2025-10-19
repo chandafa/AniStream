@@ -61,4 +61,10 @@
   body {
     @apply bg-background text-foreground;
   }
+  .text-stroke-2 {
+    -webkit-text-stroke-width: 2px;
+  }
+  .text-stroke-white\/20 {
+      -webkit-text-stroke-color: hsla(0,0%,100%,.2);
+  }
 }

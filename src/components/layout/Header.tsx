@@ -1,11 +1,10 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { CircleUser, Menu, Search, X } from 'lucide-react';
+import { usePathname, useRouter } from 'next/navigation';
+import { CircleUser, Menu, Search } from 'lucide-react';
 import { OtakuStreamLogo } from '@/components/icons';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import {
   Sheet,
   SheetContent,
@@ -19,7 +18,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { FormEvent, useState } from 'react';
+import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { useAuth, useUser } from '@/firebase';
 import { signOut } from 'firebase/auth';
@@ -58,9 +57,23 @@ export function AppHeader() {
     }
   };
 
+  const isHome = pathname === '/';
+
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className={cn(
+        "sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60",
+        "md:sticky",
+        isHome ? "absolute top-0 z-50 w-full bg-transparent border-none md:sticky md:bg-background/95 md:border-b" : ""
+    )}>
       <div className="container flex h-14 items-center">
+        {/* Mobile Menu */}
+        <div className="md:hidden flex-1">
+            <Link href="/" className="flex items-center space-x-2">
+                <OtakuStreamLogo />
+            </Link>
+        </div>
+        
+        {/* Desktop Menu */}
         <div className="mr-4 hidden md:flex">
           <Link href="/" className="mr-6 flex items-center space-x-2">
             <OtakuStreamLogo />
@@ -81,7 +94,6 @@ export function AppHeader() {
           </nav>
         </div>
 
-        {/* Mobile Menu */}
         <Sheet open={open} onOpenChange={setOpen}>
           <SheetTrigger asChild>
             <Button

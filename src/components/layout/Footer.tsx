@@ -3,7 +3,7 @@ import { OtakuStreamLogo } from '@/components/icons';
 
 export function AppFooter() {
   return (
-    <footer className="border-t">
+    <footer className="border-t hidden md:block">
       <div className="container py-8">
         <div className="flex flex-col md:flex-row justify-between items-center gap-8">
           <div className="flex flex-col items-center md:items-start gap-4">

@@ -5,6 +5,7 @@ import { AppFooter } from '@/components/layout/Footer';
 import { Toaster } from '@/components/ui/toaster';
 import { sharedMetadata } from '@/lib/metadata';
 import { FirebaseClientProvider } from '@/firebase';
+import { BottomNavBar } from '@/components/layout/BottomNavBar';
 
 export const metadata: Metadata = {
   ...sharedMetadata,
@@ -26,8 +27,9 @@ export default function RootLayout({
         <FirebaseClientProvider>
           <div className="relative flex min-h-screen flex-col">
             <AppHeader />
-            <main className="flex-1">{children}</main>
+            <main className="flex-1 pb-20 md:pb-0">{children}</main>
             <AppFooter />
+            <BottomNavBar />
           </div>
           <Toaster />
         </FirebaseClientProvider>

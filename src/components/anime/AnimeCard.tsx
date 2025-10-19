@@ -3,6 +3,7 @@ import type { Anime } from '@/lib/types';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { PlayCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Badge } from '../ui/badge';
 
 interface AnimeCardProps {
   anime: Anime;
@@ -11,6 +12,7 @@ interface AnimeCardProps {
 }
 
 function cleanSlug(slug: string): string {
+    if (!slug) return '';
     if (slug.includes('otakudesu.best/anime/')) {
         try {
             const url = new URL(slug);
@@ -27,12 +29,14 @@ function cleanSlug(slug: string): string {
 
 
 export function AnimeCard({ anime, className, rank }: AnimeCardProps) {
+  if (!anime) return null;
   const safeSlug = cleanSlug(anime.slug);
+  
   return (
     <Link href={`/anime/${safeSlug}`} className={cn("group block", className)}>
-      <div className="flex items-end space-x-4">
+      <div className="flex items-end space-x-2 md:space-x-4">
         {rank && (
-          <div className="text-8xl font-black text-stroke-2 text-transparent stroke-white/20 -mb-5">
+          <div className="text-8xl font-black text-stroke-2 text-transparent stroke-white/20 -mb-5" style={{ WebkitTextStroke: '2px hsla(0,0%,100%,.2)' }}>
             {rank}
           </div>
         )}
@@ -49,6 +53,12 @@ export function AnimeCard({ anime, className, rank }: AnimeCardProps) {
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
                   <PlayCircle className="h-16 w-16 text-white/80" />
               </div>
+              {anime.rating && !rank && (
+                <Badge className="absolute top-2 right-2">{anime.rating}</Badge>
+              )}
+               {anime.rating && rank && (
+                <Badge variant="secondary" className="absolute top-2 left-2">{anime.rating}</Badge>
+              )}
               {anime.latestEpisode && (
                   <div className="absolute bottom-0 left-0 right-0 bg-black/50 p-2 text-xs text-white backdrop-blur-sm">
                       {anime.latestEpisode.title}
