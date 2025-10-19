@@ -3,6 +3,7 @@ import { Hero } from '@/components/anime/Hero';
 import { AnimeList } from '@/components/anime/AnimeList';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Suspense } from 'react';
+import { PopularToday } from '@/components/home/PopularToday';
 
 async function HomeContent() {
   const homeData = await getHomeData();
@@ -21,9 +22,9 @@ async function HomeContent() {
     <>
       {featuredAnime && <Hero anime={featuredAnime} />}
       <div className="container space-y-12 py-12">
-        <AnimeList title="Trending Now" animes={homeData.trending} />
+        <PopularToday animes={homeData.trending.slice(0, 5)} />
+        <AnimeList title="New Release" animes={homeData.latest_episodes} />
         <AnimeList title="Ongoing Series" animes={homeData.ongoing_anime} viewMoreLink="/category/ongoing" />
-        <AnimeList title="Latest Episodes" animes={homeData.latest_episodes} />
         <AnimeList title="Completed Series" animes={homeData.completed_anime} viewMoreLink="/category/completed"/>
       </div>
     </>
@@ -33,11 +34,11 @@ async function HomeContent() {
 function HomeSkeleton() {
   return (
     <>
-      <Skeleton className="h-[40vh] md:h-[60vh] w-full rounded-none" />
+      <Skeleton className="h-[60vh] w-full rounded-none" />
       <div className="container space-y-12 py-12">
         <div>
           <Skeleton className="h-8 w-48 mb-6" />
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
             {Array.from({ length: 6 }).map((_, i) => (
               <div key={i}>
                 <Skeleton className="aspect-[2/3] w-full" />
