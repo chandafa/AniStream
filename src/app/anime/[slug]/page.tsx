@@ -3,7 +3,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { notFound } from 'next/navigation';
+import { notFound, useParams } from 'next/navigation';
 import { getAnimeDetails } from '@/lib/api';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -26,7 +26,9 @@ type Props = {
 // This is a client component, so we can't use generateMetadata directly.
 // We'll set the title dynamically in the component.
 
-export default function AnimeDetailPage({ params }: Props) {
+export default function AnimeDetailPage({ params: serverParams }: Props) {
+  const params = useParams();
+  const slug = Array.isArray(params.slug) ? params.slug[0] : params.slug;
   const { user } = useUser();
   const firestore = useFirestore();
   const { toast } = useToast();
@@ -41,8 +43,9 @@ export default function AnimeDetailPage({ params }: Props) {
 
   useEffect(() => {
     async function fetchAnime() {
+      if (!slug) return;
       setLoading(true);
-      const animeData = await getAnimeDetails(params.slug);
+      const animeData = await getAnimeDetails(slug);
       if (animeData) {
         setAnime(animeData);
         document.title = `${animeData.title} | OtakuStream`;
@@ -52,7 +55,7 @@ export default function AnimeDetailPage({ params }: Props) {
       setLoading(false);
     }
     fetchAnime();
-  }, [params.slug]);
+  }, [slug]);
 
 
   const handleBookmark = async () => {
