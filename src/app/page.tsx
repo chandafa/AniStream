@@ -5,6 +5,7 @@ import { Suspense } from 'react';
 import { PopularToday } from '@/components/home/PopularToday';
 import { HomeCarousel } from '@/components/home/HomeCarousel';
 import { HomeHero } from '@/components/home/HomeHero';
+import { OngoingAnimeList } from '@/components/home/OngoingAnimeList';
 
 async function HomeContent() {
   const homeData = await getHomeData();
@@ -31,7 +32,7 @@ async function HomeContent() {
       <div className="container space-y-12 py-12">
         <PopularToday animes={homeData.trending.slice(0, 5)} />
         <AnimeList title="New Release" animes={homeData.latest_episodes} />
-        <AnimeList title="Ongoing Series" animes={homeData.ongoing_anime} viewMoreLink="/category/ongoing" />
+        <OngoingAnimeList initialAnimes={homeData.ongoing_anime} />
         <AnimeList title="Completed Series" animes={homeData.completed_anime} viewMoreLink="/category/completed"/>
       </div>
     </>
