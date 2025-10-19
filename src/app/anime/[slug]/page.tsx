@@ -34,7 +34,7 @@ export default async function AnimeDetailPage({ params }: Props) {
     notFound();
   }
 
-  const firstEpisode = anime.episodes?.[0];
+  const firstEpisode = anime.episode_lists?.[0];
 
   return (
     <div className="container py-8">
@@ -91,12 +91,12 @@ export default async function AnimeDetailPage({ params }: Props) {
           <CardTitle className="font-headline text-2xl font-bold">Episodes</CardTitle>
         </CardHeader>
         <CardContent>
-            {anime.episodes && anime.episodes.length > 0 ? (
+            {anime.episode_lists && anime.episode_lists.length > 0 ? (
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                    {anime.episodes.map((ep) => (
+                    {anime.episode_lists.map((ep) => (
                         <Button variant="outline" asChild key={ep.slug}>
-                            <Link href={`/watch/${ep.slug}`} className="truncate">
-                                {ep.episode}
+                            <Link href={`/watch/${ep.slug}`} className="truncate" title={ep.episode}>
+                                Episode {ep.episode_number}
                             </Link>
                         </Button>
                     ))}

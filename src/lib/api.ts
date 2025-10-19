@@ -31,7 +31,7 @@ export async function getHomeData(): Promise<HomeData | null> {
 }
 
 export async function getAnimeDetails(slug: string): Promise<AnimeDetail | null> {
-  return fetcher<AnimeDetail>(`detail/${slug}`, [`anime:${slug}`]);
+  return fetcher<AnimeDetail>(`anime/${slug}`, [`anime:${slug}`]);
 }
 
 export async function getEpisodeStream(slug: string): Promise<EpisodeStreamData | null> {

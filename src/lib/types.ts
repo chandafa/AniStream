@@ -24,15 +24,15 @@ export interface HomeData {
 }
 
 export interface Episode {
-  slug: string;
-  title: string;
-  episode: string; // e.g., "Episode 1"
+    episode: string; // e.g., "Sakamoto Days Part 2 Episode 1 Subtitle Indonesia"
+    episode_number: number;
+    slug: string;
 }
 
 export interface AnimeDetail extends Anime {
   synopsis: string;
   genres: { name: string; slug: string }[];
-  episodes: Episode[];
+  episode_lists: Episode[];
 }
 
 export interface StreamServer {
