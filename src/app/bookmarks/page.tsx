@@ -1,23 +1,79 @@
+
+'use client';
+
 import type { Metadata } from 'next';
 import { sharedMetadata } from '@/lib/metadata';
 import { AnimeCard } from '@/components/anime/AnimeCard';
 import type { Anime } from '@/lib/types';
+import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
+import { doc } from 'firebase/firestore';
+import { useEffect, useState } from 'react';
+import { getAnimeDetails } from '@/lib/api';
+import { Loader2 } from 'lucide-react';
+import Link from 'next/link';
 
-export const metadata: Metadata = {
-  title: 'My Bookmarks',
-  ...sharedMetadata,
-};
-
-const bookmarkedAnime: Anime[] = [
-    { slug: '1', title: 'Action-Packed Adventure Series', poster: 'https://picsum.photos/seed/anime1/400/600', latestEpisode: {title: 'Ep 12', slug: '1'} },
-    { slug: '2', title: 'Heartwarming Slice of Life', poster: 'https://picsum.photos/seed/anime2/400/600', latestEpisode: {title: 'Ep 10', slug: '2'} },
-    { slug: '3', title: 'Epic Fantasy Saga', poster: 'https://picsum.photos/seed/anime3/400/600', latestEpisode: {title: 'Ep 24', slug: '3'} },
-    { slug: '4', title: 'Mystery Thriller in Tokyo', poster: 'https://picsum.photos/seed/anime4/400/600', latestEpisode: {title: 'Ep 8', slug: '4'} },
-    { slug: '5', title: 'Sci-Fi Space Opera', poster: 'https://picsum.photos/seed/anime5/400/600', latestEpisode: {title: 'Ep 13', slug: '5'} },
-    { slug: '6', title: 'High School Romance Comedy', poster: 'https://picsum.photos/seed/anime6/400/600', latestEpisode: {title: 'Ep 12', slug: '6'} },
-];
+// Since this is a client component, we set the title dynamically
+// export const metadata: Metadata = {
+//   title: 'My Bookmarks',
+//   ...sharedMetadata,
+// };
 
 export default function BookmarksPage() {
+  const { user, isUserLoading } = useUser();
+  const firestore = useFirestore();
+
+  const userDocRef = useMemoFirebase(() => 
+    user ? doc(firestore, 'users', user.uid) : null
+  , [user, firestore]);
+  
+  const { data: userData, isLoading: isUserDataLoading } = useDoc<{bookmarks?: string[]}>(userDocRef);
+  
+  const [bookmarkedAnime, setBookmarkedAnime] = useState<Anime[]>([]);
+  const [isLoadingAnime, setIsLoadingAnime] = useState(true);
+
+  useEffect(() => {
+    document.title = 'My Bookmarks | OtakuStream';
+
+    const fetchBookmarkedAnime = async () => {
+      if (userData && userData.bookmarks) {
+        setIsLoadingAnime(true);
+        const animePromises = userData.bookmarks.map(slug => getAnimeDetails(slug));
+        const animeResults = await Promise.all(animePromises);
+        const validAnime = animeResults.filter(anime => anime !== null) as Anime[];
+        setBookmarkedAnime(validAnime);
+        setIsLoadingAnime(false);
+      } else if (!isUserDataLoading) {
+        setBookmarkedAnime([]);
+        setIsLoadingAnime(false);
+      }
+    };
+
+    if (!isUserDataLoading) {
+      fetchBookmarkedAnime();
+    }
+  }, [userData, isUserDataLoading]);
+
+  const isLoading = isUserLoading || isUserDataLoading || isLoadingAnime;
+
+  if (isLoading) {
+    return (
+      <div className="container flex items-center justify-center min-h-[calc(100vh-200px)]">
+        <Loader2 className="h-16 w-16 animate-spin" />
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+        <div className="container text-center py-16">
+            <p className="text-lg text-muted-foreground">You need to be logged in to see your bookmarks.</p>
+            <Button asChild className="mt-4">
+                <Link href="/login">Login</Link>
+            </Button>
+        </div>
+    )
+  }
+
   return (
     <div className="container py-8">
       <h1 className="font-headline text-4xl font-bold mb-8">My Bookmarks</h1>

@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -10,6 +11,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertTriangle, ArrowLeft, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useUser, useFirestore } from '@/firebase';
+import { addToHistory } from '@/lib/user-data';
 
 function extractAnimeSlug(otakudesuUrl: string): string | null {
     try {
@@ -29,6 +32,8 @@ export default function WatchPage() {
   const params = useParams();
   const slug = params.slug as string;
   const { toast } = useToast();
+  const { user } = useUser();
+  const firestore = useFirestore();
   
   const [data, setData] = useState<EpisodeStreamData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -44,6 +49,11 @@ export default function WatchPage() {
         const result = await getEpisodeStream(slug);
         if (result && result.stream_url) {
           setData(result);
+          const animeSlug = extractAnimeSlug(result.anime.slug);
+          if (user && firestore && animeSlug) {
+            // Add to history without waiting
+            addToHistory(firestore, user.uid, animeSlug);
+          }
         } else {
           setError('No streaming servers found for this episode.');
           toast({
@@ -65,7 +75,7 @@ export default function WatchPage() {
     };
 
     fetchData();
-  }, [slug, toast]);
+  }, [slug, toast, user, firestore]);
 
   if (loading) {
     return <WatchPageSkeleton />;
