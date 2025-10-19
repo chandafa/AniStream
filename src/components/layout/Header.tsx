@@ -3,13 +3,22 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { Search } from 'lucide-react';
+import { Search, User, Bookmark, History as HistoryIcon, LogOut, LogIn } from 'lucide-react';
 import { AniStreamLogo } from '@/components/icons';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useAuth, useUser } from '@/firebase';
 import { signOut } from 'firebase/auth';
 import { useToast } from '@/hooks/use-toast';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 
 const navLinks = [
   { href: '/', label: 'Home' },
@@ -43,6 +52,11 @@ export function AppHeader() {
     }
   };
 
+  const getInitials = (name: string | null | undefined) => {
+    if (!name) return 'U';
+    return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+  };
+
   const isHome = pathname === '/';
 
   return (
@@ -51,7 +65,7 @@ export function AppHeader() {
         "md:sticky",
         isHome ? "absolute top-0 z-50 w-full bg-transparent border-none md:sticky md:bg-background/95 md:border-b" : ""
     )}>
-      <div className="container flex h-12 items-center justify-between">
+      <div className="container flex h-12 items-center">
         {/* Left Section: Logo */}
         <div className="flex items-center">
             <Link href="/" className="flex items-center space-x-2">
@@ -77,14 +91,55 @@ export function AppHeader() {
           </nav>
         </div>
 
-        {/* Right Section: Search */}
-        <div className="flex items-center justify-end">
+        {/* Right Section: Search & Profile */}
+        <div className="flex flex-1 items-center justify-end space-x-2">
             <Button variant="ghost" size="icon" asChild>
               <Link href="/search">
                 <Search className="h-4 w-4" />
                 <span className="sr-only">Search</span>
               </Link>
             </Button>
+
+            <div className="hidden md:flex">
+                {user ? (
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                                <Avatar className="h-8 w-8">
+                                    <AvatarImage src={user.photoURL || ''} alt={user.displayName || ''} />
+                                    <AvatarFallback>{getInitials(user.displayName)}</AvatarFallback>
+                                </Avatar>
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent className="w-56" align="end" forceMount>
+                            <DropdownMenuLabel className="font-normal">
+                                <div className="flex flex-col space-y-1">
+                                    <p className="text-sm font-medium leading-none">{user.displayName}</p>
+                                    <p className="text-xs leading-none text-muted-foreground">{user.email}</p>
+                                </div>
+                            </DropdownMenuLabel>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem asChild>
+                                <Link href="/profile"><User /> Profile</Link>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem asChild>
+                                <Link href="/bookmarks"><Bookmark /> Bookmarks</Link>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem asChild>
+                                <Link href="/history"><HistoryIcon /> History</Link>
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem onClick={handleLogout}>
+                                <LogOut /> Logout
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                ) : (
+                    <Button asChild size="sm">
+                        <Link href="/login">Login</Link>
+                    </Button>
+                )}
+            </div>
         </div>
       </div>
     </header>
