@@ -14,7 +14,7 @@ export function HomeHero({ anime }: { anime?: Anime }) {
   const safeSlug = cleanSlug(anime.slug);
 
   return (
-    <div className="relative h-[50vh] w-full -mt-14">
+    <div className="relative h-[50vh] w-full -mt-12">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
         src={anime.poster}
@@ -24,19 +24,19 @@ export function HomeHero({ anime }: { anime?: Anime }) {
         />
         <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/50 to-transparent" />
         <div className="container relative z-10 flex h-full items-end pb-8">
-        <div className="max-w-xl space-y-3">
-            <h1 className="font-headline text-3xl font-bold text-foreground">
+        <div className="max-w-xl space-y-2">
+            <h1 className="font-headline text-2xl font-bold text-foreground">
             {anime.title}
             </h1>
 
             <div className="flex gap-2">
-            <Button asChild>
+            <Button asChild size="sm">
                 <Link href={`/watch/${anime.latestEpisode?.slug ?? safeSlug}`}>
                 <PlayCircle />
                 Play
                 </Link>
             </Button>
-            <Button asChild variant="secondary">
+            <Button asChild variant="secondary" size="sm">
                 <Link href={`/anime/${safeSlug}`}>
                 <ListPlus />
                 My List

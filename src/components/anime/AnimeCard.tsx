@@ -36,7 +36,7 @@ export function AnimeCard({ anime, className, rank }: AnimeCardProps) {
     <Link href={`/anime/${safeSlug}`} className={cn("group block", className)}>
       <div className="flex items-end space-x-2 md:space-x-3">
         {rank && (
-          <div className="text-7xl md:text-8xl font-black text-stroke-2 text-transparent stroke-white/20 -mb-4 md:-mb-5" style={{ WebkitTextStroke: '2px hsla(0,0%,100%,.2)' }}>
+          <div className="text-6xl md:text-7xl font-black text-stroke-2 text-transparent stroke-white/20 -mb-3 md:-mb-4" style={{ WebkitTextStroke: '2px hsla(0,0%,100%,.2)' }}>
             {rank}
           </div>
         )}
@@ -51,7 +51,7 @@ export function AnimeCard({ anime, className, rank }: AnimeCardProps) {
                 loading="lazy"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-                  <PlayCircle className="h-12 w-12 text-white/80" />
+                  <PlayCircle className="h-10 w-10 text-white/80" />
               </div>
               {anime.rating && !rank && (
                 <Badge className="absolute top-1.5 right-1.5">{anime.rating}</Badge>
@@ -60,20 +60,20 @@ export function AnimeCard({ anime, className, rank }: AnimeCardProps) {
                 <Badge variant="secondary" className="absolute top-1.5 left-1.5">{anime.rating}</Badge>
               )}
               {anime.latestEpisode && (
-                  <div className="absolute bottom-0 left-0 right-0 bg-black/50 p-1.5 text-[10px] text-white backdrop-blur-sm">
+                  <div className="absolute bottom-0 left-0 right-0 bg-black/50 p-1 text-[9px] text-white backdrop-blur-sm">
                       {anime.latestEpisode.title}
                   </div>
               )}
               {anime.current_episode && (
-                  <div className="absolute bottom-0 left-0 right-0 bg-black/50 p-1.5 text-[10px] text-white backdrop-blur-sm">
+                  <div className="absolute bottom-0 left-0 right-0 bg-black/50 p-1 text-[9px] text-white backdrop-blur-sm">
                       {anime.current_episode}
                   </div>
               )}
             </div>
           </CardContent>
           {!rank && (
-            <CardFooter className="p-2 pt-2 min-h-12">
-                <h3 className="font-headline text-xs md:text-sm font-semibold line-clamp-2 text-foreground group-hover:text-primary transition-colors">
+            <CardFooter className="p-2 pt-2 min-h-10">
+                <h3 className="font-headline text-[11px] md:text-xs font-semibold line-clamp-2 text-foreground group-hover:text-primary transition-colors">
                   {anime.title}
                 </h3>
             </CardFooter>

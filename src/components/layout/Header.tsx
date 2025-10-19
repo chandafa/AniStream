@@ -59,7 +59,7 @@ export function AppHeader() {
         "md:sticky",
         isHome ? "absolute top-0 z-50 w-full bg-transparent border-none md:sticky md:bg-background/95 md:border-b" : ""
     )}>
-      <div className="container flex h-14 items-center">
+      <div className="container flex h-12 items-center">
         {/* Mobile Logo */}
         <div className="md:hidden flex-1">
             <Link href="/" className="flex items-center space-x-2">
@@ -72,7 +72,7 @@ export function AppHeader() {
           <Link href="/" className="mr-6 flex items-center space-x-2">
             <AniStreamLogo />
           </Link>
-          <nav className="flex items-center space-x-6 text-sm font-medium">
+          <nav className="flex items-center space-x-5 text-xs font-medium">
             {navLinks.map((link) => (
               <Link
                 key={link.href}

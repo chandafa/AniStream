@@ -67,11 +67,11 @@ export default function ProfilePage() {
       <div className="max-w-md mx-auto">
         <Card>
           <CardHeader className="items-center text-center">
-            <Avatar className="h-20 w-20 mb-3">
+            <Avatar className="h-16 w-16 mb-2">
               <AvatarImage src={user.photoURL ?? ''} alt={user.displayName ?? 'User'} />
               <AvatarFallback>{getInitials(user.displayName)}</AvatarFallback>
             </Avatar>
-            <CardTitle className="font-headline text-2xl">{user.displayName || 'Anonymous User'}</CardTitle>
+            <CardTitle className="font-headline text-xl">{user.displayName || 'Anonymous User'}</CardTitle>
             <CardDescription>{user.email}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">

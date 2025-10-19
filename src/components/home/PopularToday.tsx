@@ -14,8 +14,8 @@ export function PopularToday({ animes }: PopularTodayProps) {
 
   return (
     <section>
-        <div className="flex items-center justify-between mb-4">
-            <h2 className="font-headline text-xl md:text-2xl font-bold">Trending</h2>
+        <div className="flex items-center justify-between mb-3">
+            <h2 className="font-headline text-lg md:text-xl font-bold">Trending</h2>
             <Button variant="ghost" asChild className='hidden md:flex' size="sm">
                 <Link href="/category/ongoing">
                     View More <ChevronRight className="h-4 w-4" />
@@ -29,9 +29,9 @@ export function PopularToday({ animes }: PopularTodayProps) {
         </div>
         <div className="md:hidden">
             <ScrollArea className="w-full whitespace-nowrap">
-                <div className="flex w-max space-x-3 pb-4">
+                <div className="flex w-max space-x-2 pb-4">
                     {animes.map((anime, index) => (
-                        <AnimeCard key={anime.slug} anime={anime} rank={index + 1} className="w-[140px]" />
+                        <AnimeCard key={anime.slug} anime={anime} rank={index + 1} className="w-[120px]" />
                     ))}
                 </div>
                 <ScrollBar orientation="horizontal" />
