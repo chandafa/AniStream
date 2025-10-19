@@ -51,9 +51,9 @@ export async function getGenres(): Promise<{genres: Genre[]} | null> {
 }
 
 export async function getOngoingAnime(page: number = 1): Promise<PaginatedAnime | null> {
-  return fetcher<PaginatedAnime>(`ongoing?page=${page}`);
+  return fetcher<PaginatedAnime>(`ongoing-anime?page=${page}`);
 }
 
 export async function getCompletedAnime(page: number = 1): Promise<PaginatedAnime | null> {
-  return fetcher<PaginatedAnime>(`completed?page=${page}`);
+  return fetcher<PaginatedAnime>(`completed-anime?page=${page}`);
 }
