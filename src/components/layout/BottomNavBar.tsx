@@ -2,13 +2,14 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, CalendarDays, LayoutGrid, User } from 'lucide-react';
+import { Home, CalendarDays, LayoutGrid, User, Bookmark } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const navItems = [
   { href: '/', label: 'Home', icon: Home },
   { href: '/schedule', label: 'Schedule', icon: CalendarDays },
   { href: '/genres', label: 'Category', icon: LayoutGrid },
+  { href: '/bookmarks', label: 'Library', icon: Bookmark },
   { href: '/login', label: 'Profile', icon: User },
 ];
 
@@ -24,7 +25,7 @@ export function BottomNavBar() {
             href={item.href}
             className={cn(
               "flex flex-col items-center justify-center gap-1 w-full h-full transition-colors text-muted-foreground",
-              pathname === item.href && 'text-primary'
+              (pathname === item.href || (item.href === '/bookmarks' && pathname.startsWith('/history'))) && 'text-primary'
             )}
           >
             <item.icon className="h-6 w-6" />
