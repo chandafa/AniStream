@@ -30,9 +30,9 @@ async function HomeContent() {
       </div>
       
       <div className="container space-y-12 py-12">
-        <PopularToday animes={homeData.trending.slice(0, 5)} />
         <AnimeList title="New Release" animes={homeData.latest_episodes} />
         <OngoingAnimeList initialAnimes={homeData.ongoing_anime} />
+        <PopularToday animes={homeData.trending.slice(0, 5)} />
         <AnimeList title="Completed Series" animes={homeData.completed_anime} viewMoreLink="/category/completed"/>
       </div>
     </>
