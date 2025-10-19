@@ -7,6 +7,28 @@ import { HomeCarousel } from '@/components/home/HomeCarousel';
 import { HomeHero } from '@/components/home/HomeHero';
 import { OngoingAnimeList } from '@/components/home/OngoingAnimeList';
 import { CompletedAnimeList } from '@/components/home/CompletedAnimeList';
+import type { Anime } from '@/lib/types';
+
+const staticCarouselData: Anime[] = [
+    {
+      title: 'Epic Adventure in a Fantasy World',
+      slug: 'featured-1',
+      poster: 'https://picsum.photos/seed/carousel1/1280/720',
+      latestEpisode: { slug: 'watch/featured-1-ep-1', title: 'Episode 1' }
+    },
+    {
+      title: 'High School Slice of Life',
+      slug: 'featured-2',
+      poster: 'https://picsum.photos/seed/carousel2/1280/720',
+      latestEpisode: { slug: 'watch/featured-2-ep-1', title: 'Episode 1' }
+    },
+    {
+      title: 'Sci-Fi Thriller: The Last Hope',
+      slug: 'featured-3',
+      poster: 'https://picsum.photos/seed/carousel3/1280/720',
+      latestEpisode: { slug: 'watch/featured-3-ep-1', title: 'Episode 1' }
+    },
+  ];
 
 async function HomeContent() {
   const homeData = await getHomeData();
@@ -19,20 +41,14 @@ async function HomeContent() {
     );
   }
 
-  const featuredAnime = homeData.featured ?? homeData.trending ?? [];
-
   return (
     <>
-      {featuredAnime.length > 0 && (
-        <>
-          <div className="md:hidden">
-            <HomeHero anime={featuredAnime[0]} />
-          </div>
-          <div className="hidden md:block">
-            <HomeCarousel animes={featuredAnime} />
-          </div>
-        </>
-      )}
+      <div className="md:hidden">
+        <HomeHero anime={staticCarouselData[0]} />
+      </div>
+      <div className="hidden md:block">
+        <HomeCarousel animes={staticCarouselData} />
+      </div>
       
       <div className="container space-y-6 py-4 md:space-y-10 md:py-10">
         

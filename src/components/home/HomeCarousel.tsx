@@ -14,6 +14,7 @@ import {
   CarouselPrevious,
 } from '@/components/ui/carousel';
 import Autoplay from "embla-carousel-autoplay";
+import { cleanSlug } from '@/lib/utils';
 
 export function HomeCarousel({ animes }: { animes: Anime[] }) {
   return (
@@ -47,13 +48,13 @@ export function HomeCarousel({ animes }: { animes: Anime[] }) {
 
                   <div className="flex gap-2 md:gap-4">
                     <Button asChild size="lg">
-                      <Link href={`/watch/${anime.latestEpisode?.slug ?? anime.slug}`}>
+                      <Link href={anime.latestEpisode ? `/watch/${cleanSlug(anime.latestEpisode.slug)}` : `/anime/${cleanSlug(anime.slug)}`}>
                         <PlayCircle />
                         Play
                       </Link>
                     </Button>
                     <Button asChild variant="secondary" size="lg">
-                      <Link href={`/anime/${anime.slug}`}>
+                      <Link href={`/anime/${cleanSlug(anime.slug)}`}>
                         <ListPlus />
                         My List
                       </Link>
