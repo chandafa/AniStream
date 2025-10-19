@@ -6,6 +6,7 @@ import {
   Genre,
   HomeData,
   PaginatedAnime,
+  UnlimitedAnimeResponse,
 } from './types';
 
 const API_BASE_URL = 'https://www.sankavollerei.com/anime';
@@ -72,6 +73,25 @@ export async function searchAnime(keyword: string, page: number = 1): Promise<Pa
             currentPage: page,
             hasNextPage: anime.length > 0, // Assume there's a next page if results are returned
             totalPages: page + (anime.length > 0 ? 1 : 0), // Basic assumption
+        }
+    };
+}
+
+export async function getAllAnime(page: number = 1): Promise<PaginatedAnime | null> {
+    const data = await fetcher<UnlimitedAnimeResponse>(`unlimited`);
+    if (!data) return null;
+
+    const pageSize = 24;
+    const startIndex = (page - 1) * pageSize;
+    const endIndex = startIndex + pageSize;
+    const paginatedAnime = data.data.slice(startIndex, endIndex);
+
+    return {
+        anime: paginatedAnime,
+        pagination: {
+            currentPage: page,
+            hasNextPage: endIndex < data.data.length,
+            totalPages: Math.ceil(data.data.length / pageSize),
         }
     };
 }

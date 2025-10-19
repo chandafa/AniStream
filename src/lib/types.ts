@@ -14,6 +14,13 @@ export interface Anime {
   current_episode?: string; // from ongoing_anime
 }
 
+export interface UnlimitedAnimeResponse {
+  status: string;
+  creator: string;
+  data: Anime[];
+}
+
+
 export interface HomeData {
   trending: Anime[];
   ongoing_anime: Anime[];

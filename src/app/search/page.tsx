@@ -1,6 +1,6 @@
 
 
-import { getAnimeByGenre, searchAnime } from "@/lib/api";
+import { getAnimeByGenre, searchAnime, getAllAnime } from "@/lib/api";
 import { SearchClient } from "@/components/search/SearchClient";
 import type { Metadata } from "next";
 import { sharedMetadata } from "@/lib/metadata";
@@ -28,12 +28,13 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
       ? searchAnime(query, page)
       : genre
       ? getAnimeByGenre(genre, page)
-      : Promise.resolve(null)
+      : getAllAnime(page)
   );
 
-  let title = "Search";
+  let title = "All Anime";
   if (query) title = `Results for "${query}"`;
   else if (genre) title = `Genre: ${genre}`;
+
 
   return (
     <div className="container py-8">
@@ -42,7 +43,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
         {resultsData && resultsData.anime.length > 0 ? (
           <>
             <AnimeList title={title} animes={resultsData.anime} />
-            {resultsData.pagination && (resultsData.pagination.hasNextPage || resultsData.pagination.currentPage > 1) && (
+            {resultsData.pagination && (resultsData.pagination.hasNextPage || page > 1) && (
               <Pagination
                 currentPage={page}
                 hasNextPage={resultsData.pagination.hasNextPage}
@@ -53,8 +54,8 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
           </>
         ) : (
           !query && !genre ? (
-            <p className="text-center text-muted-foreground mt-16">
-              Search for your favorite anime to get started.
+             <p className="text-center text-muted-foreground mt-16">
+              Loading anime or no anime found.
             </p>
           ) : (
             <p className="text-center text-muted-foreground mt-16">
