@@ -51,7 +51,7 @@ export interface HomeData {
   trending: Anime[];
   ongoing_anime: Anime[];
   latest_episodes: Anime[];
-  completed_anime: Anime[];
+  complete_anime: Anime[];
   featured?: Anime[];
   genres: string[];
 }

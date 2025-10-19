@@ -6,6 +6,7 @@ import { PopularToday } from '@/components/home/PopularToday';
 import { HomeCarousel } from '@/components/home/HomeCarousel';
 import { HomeHero } from '@/components/home/HomeHero';
 import { OngoingAnimeList } from '@/components/home/OngoingAnimeList';
+import { CompletedAnimeList } from '@/components/home/CompletedAnimeList';
 
 async function HomeContent() {
   const homeData = await getHomeData();
@@ -22,18 +23,34 @@ async function HomeContent() {
 
   return (
     <>
-      <div className="md:hidden">
-        <HomeHero anime={featuredAnime[0]} />
-      </div>
-      <div className="hidden md:block">
-        {featuredAnime.length > 0 && <HomeCarousel animes={featuredAnime} />}
-      </div>
+      {featuredAnime.length > 0 && (
+        <>
+          <div className="md:hidden">
+            <HomeHero anime={featuredAnime[0]} />
+          </div>
+          <div className="hidden md:block">
+            <HomeCarousel animes={featuredAnime} />
+          </div>
+        </>
+      )}
       
       <div className="container space-y-6 py-4 md:space-y-10 md:py-10">
-        <AnimeList title="New Release" animes={homeData.latest_episodes} />
-        <OngoingAnimeList initialAnimes={homeData.ongoing_anime} />
-        <PopularToday animes={homeData.trending.slice(0, 5)} />
-        <AnimeList title="Completed Series" animes={homeData.completed_anime} viewMoreLink="/category/completed"/>
+        
+        {homeData.latest_episodes && homeData.latest_episodes.length > 0 && (
+          <AnimeList title="New Release" animes={homeData.latest_episodes} />
+        )}
+
+        {homeData.ongoing_anime && homeData.ongoing_anime.length > 0 && (
+          <OngoingAnimeList initialAnimes={homeData.ongoing_anime} />
+        )}
+
+        {homeData.trending && homeData.trending.length > 0 && (
+          <PopularToday animes={homeData.trending.slice(0, 5)} />
+        )}
+        
+        {homeData.complete_anime && homeData.complete_anime.length > 0 && (
+          <CompletedAnimeList initialAnimes={homeData.complete_anime} />
+        )}
       </div>
     </>
   );

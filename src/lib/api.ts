@@ -37,7 +37,7 @@ export async function getHomeData(): Promise<HomeData | null> {
       trending_anime: Anime[];
       ongoing_anime: Anime[];
       latest_episode_anime: Anime[];
-      completed_anime: Anime[];
+      complete_anime: Anime[];
       featured?: Anime[];
     }
   }>('home', ['home']);
@@ -48,7 +48,7 @@ export async function getHomeData(): Promise<HomeData | null> {
     trending: data.data.trending_anime ?? [],
     ongoing_anime: data.data.ongoing_anime ?? [],
     latest_episodes: data.data.latest_episode_anime ?? [],
-    completed_anime: data.data.completed_anime ?? [],
+    complete_anime: data.data.complete_anime ?? [],
     featured: data.data.featured ?? [],
     genres: [],
   };
