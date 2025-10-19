@@ -45,12 +45,14 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
         {resultsData && resultsData.anime.length > 0 ? (
           <>
             <AnimeList title={title} animes={resultsData.anime} />
-            <Pagination
-              currentPage={page}
-              hasNextPage={resultsData.pagination.hasNextPage}
-              query={query}
-              genre={genre}
-            />
+            {resultsData.pagination && (
+              <Pagination
+                currentPage={page}
+                hasNextPage={resultsData.pagination.hasNextPage}
+                query={query}
+                genre={genre}
+              />
+            )}
           </>
         ) : (
           !query && !genre ? (

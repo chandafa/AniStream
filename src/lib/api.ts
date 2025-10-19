@@ -57,7 +57,7 @@ export async function getEpisodeStream(slug: string): Promise<EpisodeStreamData 
 }
 
 export async function searchAnime(keyword: string, page: number = 1): Promise<PaginatedAnime | null> {
-  return fetcher<PaginatedAnime>(`search?q=${keyword}&page=${page}`);
+  return fetcher<PaginatedAnime>(`search/${keyword}?page=${page}`);
 }
 
 export async function getAnimeByGenre(slug: string, page: number = 1): Promise<PaginatedAnime | null> {
