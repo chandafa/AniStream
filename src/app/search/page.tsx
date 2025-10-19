@@ -2,6 +2,7 @@
 
 
 
+
 import { getAnimeByGenre, searchAnime } from "@/lib/api";
 import { SearchClient } from "@/components/search/SearchClient";
 import type { Metadata } from "next";
@@ -85,7 +86,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
     <div className="container py-8">
       <SearchClient />
        <Suspense key={query + genre + page} fallback={<SearchSkeleton />}>
-        <SearchResults query={query} genre={genre} page={page} />
+        {(query || genre) && <SearchResults query={query} genre={genre} page={page} />}
       </Suspense>
     </div>
   );
