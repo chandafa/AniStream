@@ -30,6 +30,11 @@ export function AnimeCard({ anime }: AnimeCardProps) {
                     {anime.latestEpisode.title}
                 </div>
             )}
+            {anime.current_episode && (
+                <div className="absolute bottom-0 left-0 right-0 bg-black/50 p-2 text-xs text-white backdrop-blur-sm">
+                    {anime.current_episode}
+                </div>
+            )}
           </div>
         </CardContent>
         <CardFooter className="p-2 pt-2 min-h-14">
