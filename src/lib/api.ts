@@ -63,8 +63,8 @@ export async function getDonghuaHome(page: number = 1): Promise<Anime[] | null> 
 }
 
 async function searchDonghua(keyword: string, page: number = 1): Promise<Anime[] | null> {
-    const data = await fetcher<{ data: Anime[] }>(`donghua/search/${keyword}/${page}`);
-    return data?.data ?? [];
+    const response = await fetcher<{ data: Anime[] }>(`donghua/search/${keyword}/${page}`);
+    return response?.data ?? [];
 }
 
 async function getDonghuaDetails(slug: string): Promise<AnimeDetail | null> {
@@ -72,6 +72,24 @@ async function getDonghuaDetails(slug: string): Promise<AnimeDetail | null> {
     if (donghuaData) {
         if (!donghuaData.slug) {
             donghuaData.slug = slug;
+        }
+
+        // Dynamically generate episode list if it doesn't exist
+        if ((!donghuaData.episode_lists || donghuaData.episode_lists.length === 0) && donghuaData.episodes_count) {
+            const countMatch = donghuaData.episodes_count.match(/\d+/);
+            const episodeCount = countMatch ? parseInt(countMatch[0], 10) : 0;
+            
+            if (episodeCount > 0) {
+                donghuaData.episode_lists = Array.from({ length: episodeCount }, (_, i) => {
+                    const episodeNumber = i + 1;
+                    const episodeSlug = `${slug}-episode-${episodeNumber}-subtitle-indonesia`;
+                    return {
+                        episode: `Episode ${episodeNumber}`,
+                        episode_number: episodeNumber,
+                        slug: episodeSlug,
+                    };
+                });
+            }
         }
         return donghuaData;
     }
@@ -82,21 +100,23 @@ async function getDonghuaEpisodeStream(slug: string): Promise<EpisodeStreamData 
     const data = await fetcher<{
         episode: string;
         streaming: { main_url: { url: string } };
+        anime: { slug: string };
     }>(`donghua/episode/${slug}`, [`donghua-episode:${slug}`]);
 
     if (!data || !data.streaming || !data.streaming.main_url) return null;
 
-    // Adapt the Donghua API response to the existing EpisodeStreamData structure
+    // Extract anime slug from the full otakudesu URL if present
+    const animeSlug = data.anime?.slug ? cleanSlug(data.anime.slug) : cleanSlug(slug);
+
     return {
         episode: data.episode,
         stream_url: data.streaming.main_url.url,
-        // Donghua API doesn't provide these, so we create fallback objects
         anime: {
-            slug: cleanSlug(slug) // Extract anime slug from episode slug
+            slug: animeSlug
         },
-        has_next_episode: false,
+        has_next_episode: false, // Donghua API doesn't provide this
         next_episode: null,
-        has_previous_episode: false,
+        has_previous_episode: false, // Donghua API doesn't provide this
         previous_episode: null,
     };
 }
@@ -106,20 +126,23 @@ async function getDonghuaEpisodeStream(slug: string): Promise<EpisodeStreamData 
 export async function getAnimeDetails(slug: string): Promise<AnimeDetail | null> {
     const safeSlug = cleanSlug(slug);
     
-    // First, try the standard anime endpoint
     const animeData = await fetcher<{ data: AnimeDetail }>(`anime/${safeSlug}`, [`anime:${safeSlug}`]);
     
-    if (animeData && animeData.data) {
+    if (animeData && animeData.data && animeData.data.episode_lists && animeData.data.episode_lists.length > 0) {
       return animeData.data;
     }
   
-    // If the standard anime endpoint fails, try the Donghua detail endpoint.
+    // If the standard anime endpoint fails or has no episodes, try the Donghua detail endpoint.
     const donghuaDetails = await getDonghuaDetails(safeSlug);
     if(donghuaDetails) {
         return donghuaDetails;
     }
     
-    // If both endpoints fail, return null.
+    // Fallback to original anime data even if it has no episodes
+    if (animeData && animeData.data) {
+        return animeData.data;
+    }
+
     return null;
 }
 
