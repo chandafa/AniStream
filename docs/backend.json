@@ -344,7 +344,7 @@
           "schema": {
             "$ref": "#/backend/entities/Comment"
           },
-          "description": "Stores comments for a specific episode. Accessible to all users for reading, but only authenticated users can write.",
+          "description": "Stores comments for a specific episode. All users can read (list) comments. Only authenticated users can write (create) their own comments.",
           "params": [
             {
               "name": "episodeId",
