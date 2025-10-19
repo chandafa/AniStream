@@ -40,11 +40,10 @@ export default async function AnimeDetailPage({ params }: Props) {
     <div className="container py-8">
       <div className="grid md:grid-cols-3 lg:grid-cols-4 gap-8">
         <div className="md:col-span-1">
-          <Image
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
             src={anime.poster}
             alt={`Poster of ${anime.title}`}
-            width={400}
-            height={600}
             className="rounded-lg w-full shadow-lg"
             data-ai-hint="anime poster"
           />
