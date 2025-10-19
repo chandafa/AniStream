@@ -17,128 +17,82 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Separator } from '@/components/ui/separator';
-import { useAuth, useUser } from '@/firebase';
+import { useAuth } from '@/firebase';
 import { zodResolver } from '@hookform/resolvers/zod';
-import {
-  GithubAuthProvider,
-  GoogleAuthProvider,
-  signInWithEmailAndPassword,
-  signInWithPopup,
-} from 'firebase/auth';
-import { Github, Loader2 } from 'lucide-react';
+import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
+import { Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-import { OtakuStreamLogo } from '@/components/icons';
 import { useToast } from '@/hooks/use-toast';
-import { useEffect } from 'react';
 
 const formSchema = z.object({
+  username: z.string().min(3, { message: 'Username must be at least 3 characters.' }),
   email: z.string().email({ message: 'Please enter a valid email.' }),
   password: z.string().min(6, { message: 'Password must be at least 6 characters.' }),
 });
 
-const GoogleIcon = () => (
-    <svg className="h-5 w-5" viewBox="0 0 24 24">
-      <path
-        fill="currentColor"
-        d="M21.35,11.1H12.18V13.83H18.69C18.36,17.64 15.19,19.27 12.19,19.27C8.36,19.27 5,16.25 5,12C5,7.9 8.2,5 12,5C14.5,5 16.22,6.11 17.06,6.96L19.5,4.5C17.36,2.61 14.86,1.5 12,1.5C6.42,1.5 2,6.4 2,12C2,17.6 6.42,22.5 12,22.5C17.64,22.5 22,18.5 22,12.31C22,11.75 21.64,11.1 21.35,11.1V11.1Z"
-      />
-    </svg>
-  );
-
-export default function LoginPage() {
+export default function RegisterPage() {
   const { toast } = useToast();
   const auth = useAuth();
-  const { user, isUserLoading } = useUser();
   const router = useRouter();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
+      username: '',
       email: '',
       password: '',
     },
   });
 
-  useEffect(() => {
-    if (user && !isUserLoading) {
-      router.push('/');
-    }
-  }, [user, isUserLoading, router]);
-
-
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
-      await signInWithEmailAndPassword(auth, values.email, values.password);
+      const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
+      await updateProfile(userCredential.user, {
+        displayName: values.username,
+      });
       toast({
-        title: 'Login Successful',
-        description: "Welcome back!",
+        title: 'Registration Successful',
+        description: 'Your account has been created.',
       });
       router.push('/');
     } catch (error: any) {
       console.error(error);
       toast({
         variant: 'destructive',
-        title: 'Login Failed',
+        title: 'Registration Failed',
         description: error.message,
       });
     }
   };
-
-  const handleOAuthLogin = async (provider: GoogleAuthProvider | GithubAuthProvider) => {
-    try {
-      await signInWithPopup(auth, provider);
-      toast({
-        title: 'Login Successful',
-        description: `Welcome! You've logged in with ${provider.providerId.split('.')[0]}.`,
-      });
-      router.push('/');
-    } catch (error: any) {
-      console.error(error);
-      toast({
-        variant: 'destructive',
-        title: 'Login Failed',
-        description: error.message,
-      });
-    }
-  };
-  
-  if (isUserLoading || user) {
-    return (
-      <div className="container flex items-center justify-center min-h-[calc(100vh-200px)]">
-        <Loader2 className="h-16 w-16 animate-spin" />
-      </div>
-    );
-  }
 
   return (
     <div className="container flex items-center justify-center min-h-[calc(100vh-200px)] py-12">
       <Card className="w-full max-w-sm">
         <CardHeader className="text-center">
-          <CardTitle className="font-headline text-2xl">Welcome Back!</CardTitle>
+          <CardTitle className="font-headline text-2xl">Create an Account</CardTitle>
           <CardDescription>
-            Enter your credentials to access your account.
+            Join OtakuStream to start bookmarking and tracking your favorite anime.
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 gap-4 mb-4">
-            <Button variant="outline" onClick={() => handleOAuthLogin(new GoogleAuthProvider())}>
-              <GoogleIcon /> Google
-            </Button>
-            <Button variant="outline" onClick={() => handleOAuthLogin(new GithubAuthProvider())}>
-              <Github /> GitHub
-            </Button>
-          </div>
-          <div className="relative my-4">
-            <Separator />
-            <span className="absolute left-1/2 -translate-x-1/2 top-[-10px] bg-card px-2 text-sm text-muted-foreground">OR</span>
-          </div>
-
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <FormField
+                control={form.control}
+                name="username"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Username</FormLabel>
+                    <FormControl>
+                      <Input placeholder="your_username" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
               <FormField
                 control={form.control}
                 name="email"
@@ -171,15 +125,15 @@ export default function LoginPage() {
               />
               <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
                 {form.formState.isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Login
+                Sign Up
               </Button>
             </form>
           </Form>
 
           <div className="mt-4 text-center text-sm">
-            Don&apos;t have an account?{' '}
-            <Link href="/register" className="underline text-primary">
-              Sign up
+            Already have an account?{' '}
+            <Link href="/login" className="underline text-primary">
+              Login
             </Link>
           </div>
         </CardContent>
