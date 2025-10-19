@@ -20,7 +20,7 @@ import { cn } from '@/lib/utils';
 export function HomeCarousel({ animes }: { animes: Anime[] }) {
   return (
     <Carousel 
-        className="w-full -mt-12 md:mt-0"
+        className="w-full"
         plugins={[
             Autoplay({
               delay: 3000,
@@ -32,18 +32,18 @@ export function HomeCarousel({ animes }: { animes: Anime[] }) {
         {animes.map((anime) => (
           <CarouselItem key={anime.slug}>
             <div className="relative h-[50vh] md:h-[60vh] w-full">
-              <div className={cn("absolute inset-0 md:rounded-none overflow-hidden", "md:p-0")}>
+              <div className={cn("absolute inset-0 overflow-hidden rounded-xl")}>
                 <Image
                   src={anime.poster}
                   alt={`Poster for ${anime.title}`}
                   fill
-                  className="object-cover w-full h-full md:rounded-none"
+                  className="object-cover w-full h-full"
                   data-ai-hint="anime background"
                   priority
                 />
               </div>
-              <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/70 to-transparent" />
-              <div className="absolute inset-0 bg-gradient-to-r from-background via-background/50 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/70 to-transparent rounded-xl" />
+              <div className="absolute inset-0 bg-gradient-to-r from-background via-background/50 to-transparent rounded-xl" />
               <div className="container relative z-10 flex h-full items-end pb-8 md:pb-16">
                 <div className="max-w-xl space-y-3 md:space-y-4">
                   <h1 className="font-headline text-2xl md:text-5xl font-bold text-foreground animate-fade-in-down">

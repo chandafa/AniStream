@@ -7,6 +7,9 @@ import { HomeCarousel } from '@/components/home/HomeCarousel';
 import { OngoingAnimeList } from '@/components/home/OngoingAnimeList';
 import { CompletedAnimeList } from '@/components/home/CompletedAnimeList';
 import type { Anime } from '@/lib/types';
+import { HomeHero } from '@/components/home/HomeHero';
+import { useIsMobile } from '@/hooks/use-mobile';
+
 
 const staticCarouselData: Anime[] = [
     {
@@ -42,7 +45,9 @@ async function HomeContent() {
 
   return (
     <>
-      <HomeCarousel animes={staticCarouselData} />
+      <div className='container pt-4'>
+        <HomeHero animes={staticCarouselData} />
+      </div>
       
       <div className="container space-y-6 py-4 md:space-y-10 md:py-10">
         
@@ -69,7 +74,9 @@ async function HomeContent() {
 function HomeSkeleton() {
   return (
     <>
-      <Skeleton className="h-[50vh] md:h-[60vh] w-full rounded-none" />
+      <div className='container pt-4'>
+        <Skeleton className="h-[50vh] md:h-[60vh] w-full rounded-xl" />
+      </div>
       <div className="container space-y-12 py-12">
         <div>
           <Skeleton className="h-8 w-48 mb-6" />
