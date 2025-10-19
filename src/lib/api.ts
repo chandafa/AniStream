@@ -79,9 +79,26 @@ async function getDonghuaDetails(slug: string): Promise<AnimeDetail | null> {
 }
 
 async function getDonghuaEpisodeStream(slug: string): Promise<EpisodeStreamData | null> {
-    const data = await fetcher<{ stream_url: string } & Omit<EpisodeStreamData, 'stream_url'>>(`donghua/episode/${slug}`, [`donghua-episode:${slug}`]);
-    if (!data || !data.stream_url) return null;
-    return { ...data, stream_url: data.stream_url };
+    const data = await fetcher<{
+        episode: string;
+        streaming: { main_url: { url: string } };
+    }>(`donghua/episode/${slug}`, [`donghua-episode:${slug}`]);
+
+    if (!data || !data.streaming || !data.streaming.main_url) return null;
+
+    // Adapt the Donghua API response to the existing EpisodeStreamData structure
+    return {
+        episode: data.episode,
+        stream_url: data.streaming.main_url.url,
+        // Donghua API doesn't provide these, so we create fallback objects
+        anime: {
+            slug: cleanSlug(slug) // Extract anime slug from episode slug
+        },
+        has_next_episode: false,
+        next_episode: null,
+        has_previous_episode: false,
+        previous_episode: null,
+    };
 }
 
 // --- Combined Functions ---

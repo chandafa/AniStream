@@ -81,7 +81,7 @@ export interface StreamServer {
 }
 
 export interface EpisodeStreamData {
-  episode?: string; // Donghua API may not have this
+  episode?: string;
   anime: {
     slug: string;
   };
