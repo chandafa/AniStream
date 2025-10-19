@@ -3,18 +3,9 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { CircleUser, Menu, Search } from 'lucide-react';
+import { Search } from 'lucide-react';
 import { AniStreamLogo } from '@/components/icons';
 import { Button } from '@/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { useAuth, useUser } from '@/firebase';
 import { signOut } from 'firebase/auth';
@@ -69,8 +60,8 @@ export function AppHeader() {
         </div>
         
         {/* Desktop Menu */}
-        <div className="mr-4 hidden md:flex">
-          <Link href="/" className="mr-6 flex items-center space-x-2">
+        <div className="hidden md:flex items-center gap-6 flex-1">
+          <Link href="/" className="flex items-center space-x-2">
             <AniStreamLogo />
           </Link>
           <nav className="flex items-center space-x-5 text-xs font-medium">
@@ -89,7 +80,7 @@ export function AppHeader() {
           </nav>
         </div>
 
-        <div className="flex flex-1 items-center justify-end space-x-1">
+        <div className="flex items-center justify-end space-x-1">
             <Button variant="ghost" size="icon" asChild>
               <Link href="/search">
                 <Search className="h-4 w-4" />
