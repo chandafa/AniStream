@@ -26,7 +26,6 @@ const navLinks = [
   { href: '/', label: 'Home' },
   { href: '/category/ongoing', label: 'Ongoing' },
   { href: '/category/completed', label: 'Completed' },
-  { href: '/search', label: 'Search' },
   { href: '/recommendations', label: 'For You' },
 ];
 
@@ -74,7 +73,7 @@ export function AppHeader() {
               <OtakuStreamLogo />
             </Link>
             <nav className="flex flex-col space-y-4">
-              {navLinks.map((link) => (
+              {[...navLinks, { href: '/search', label: 'Search' }].map((link) => (
                 <Link
                   key={link.href}
                   href={link.href}
@@ -91,9 +90,12 @@ export function AppHeader() {
           </SheetContent>
         </Sheet>
         <div className="flex flex-1 items-center justify-end space-x-2">
-            <div className="w-full flex-1 md:w-auto md:flex-none">
-                <SearchForm />
-            </div>
+            <Button variant="ghost" size="icon" asChild>
+              <Link href="/search">
+                <Search className="h-5 w-5" />
+                <span className="sr-only">Search</span>
+              </Link>
+            </Button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="secondary" size="icon" className="rounded-full">
@@ -115,31 +117,3 @@ export function AppHeader() {
     </header>
   );
 }
-
-function SearchForm() {
-    const router = useRouter();
-    const searchParams = useSearchParams();
-    const defaultQuery = searchParams.get('q') || '';
-  
-    const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
-      e.preventDefault();
-      const formData = new FormData(e.currentTarget);
-      const query = formData.get('q') as string;
-      if (query.trim()) {
-        router.push(`/search?q=${encodeURIComponent(query)}`);
-      }
-    };
-  
-    return (
-      <form onSubmit={handleSubmit} className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input
-          type="search"
-          name="q"
-          defaultValue={defaultQuery}
-          placeholder="Search anime..."
-          className="w-full pl-9 bg-secondary"
-        />
-      </form>
-    );
-  }
