@@ -49,11 +49,13 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
   return (
     <div className="container py-8">
       <AnimeList title={`${title} Anime`} animes={data.anime} />
-      <Pagination
-        currentPage={page}
-        hasNextPage={data.pagination.hasNextPage}
-        type={type}
-      />
+      {data.pagination && (
+        <Pagination
+            currentPage={page}
+            hasNextPage={data.pagination.hasNextPage}
+            type={type}
+        />
+      )}
     </div>
   );
 }
