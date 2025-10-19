@@ -5,7 +5,7 @@ import { useAuth, useUser, useFirestore, useDoc, useMemoFirebase } from '@/fireb
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Loader2, LogOut, Settings, Shield, Film, Bookmark, Star } from 'lucide-react';
+import { Loader2, LogOut, Settings, Shield, Film, Bookmark, Star, ShieldCheck } from 'lucide-react';
 import { signOut } from 'firebase/auth';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
@@ -15,6 +15,7 @@ import { doc } from 'firebase/firestore';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { cn } from '@/lib/utils';
 
 const XP_PER_WATCH = 10;
 const XP_PER_BOOKMARK = 5;
@@ -25,15 +26,21 @@ interface UserProfileData {
   history?: string[];
   xp?: number;
   level?: number;
+  role?: 'owner' | 'admin' | 'member';
 }
 
-const badges = [
+const achievementBadges = [
   { id: 'newbie', name: 'Newbie', icon: Star, description: 'Welcome! You started your journey.', requiredXP: 0 },
   { id: 'watcher', name: 'Watcher', icon: Film, description: 'Watched at least 5 anime episodes.', requiredHistory: 5 },
   { id: 'collector', name: 'Collector', icon: Bookmark, description: 'Bookmarked 10 anime series.', requiredBookmarks: 10 },
   { id: 'veteran', name: 'Veteran', icon: Shield, description: 'Reached Level 5.', requiredLevel: 5 },
 ];
 
+const roleBadges = {
+    owner: { name: 'Owner', icon: ShieldCheck, className: 'text-red-500' },
+    admin: { name: 'Admin', icon: ShieldCheck, className: 'text-blue-500' },
+    member: { name: 'Member', icon: Shield, className: 'text-green-500' }
+};
 
 export default function ProfilePage() {
   const { user, isUserLoading } = useUser();
@@ -79,7 +86,7 @@ export default function ProfilePage() {
     const currentXp = totalXp - xpForThisLevel;
     const xpProgress = (currentXp / XP_FOR_NEXT_LEVEL) * 100;
 
-    const earnedBadges = badges.filter(badge => {
+    const earnedBadges = achievementBadges.filter(badge => {
       if (badge.id === 'newbie') return true;
       if (badge.requiredHistory && historyCount >= badge.requiredHistory) return true;
       if (badge.requiredBookmarks && bookmarkCount >= badge.requiredBookmarks) return true;
@@ -120,6 +127,9 @@ export default function ProfilePage() {
     if (!name) return 'U';
     return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
   };
+  
+  const userRole = userData?.role || 'member';
+  const RoleBadge = roleBadges[userRole];
 
   return (
     <div className="container py-8">
@@ -130,7 +140,19 @@ export default function ProfilePage() {
               <AvatarImage src={user.photoURL ?? ''} alt={user.displayName ?? 'User'} />
               <AvatarFallback>{getInitials(user.displayName)}</AvatarFallback>
             </Avatar>
-            <CardTitle className="font-headline text-xl">{user.displayName || 'Anonymous User'}</CardTitle>
+            <div className='flex items-center gap-2'>
+                <CardTitle className="font-headline text-xl">{user.displayName || 'Anonymous User'}</CardTitle>
+                <TooltipProvider>
+                    <Tooltip>
+                        <TooltipTrigger>
+                            <RoleBadge.icon className={cn("h-5 w-5", RoleBadge.className)} />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                            <p>{RoleBadge.name}</p>
+                        </TooltipContent>
+                    </Tooltip>
+                </TooltipProvider>
+            </div>
             <CardDescription>{user.email}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
@@ -154,7 +176,7 @@ export default function ProfilePage() {
 
         <Card>
             <CardHeader>
-                <CardTitle className="font-headline text-lg">Badges</CardTitle>
+                <CardTitle className="font-headline text-lg">Missions &amp; Badges</CardTitle>
                 <CardDescription>Your collection of achievements.</CardDescription>
             </CardHeader>
             <CardContent>
@@ -184,3 +206,4 @@ export default function ProfilePage() {
   );
 }
 
+    

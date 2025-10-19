@@ -20,6 +20,11 @@
           "type": "string",
           "description": "User's chosen username."
         },
+        "role": {
+            "type": "string",
+            "description": "User's role in the system.",
+            "enum": ["owner", "admin", "member"]
+        },
         "registrationDate": {
           "type": "string",
           "description": "Date and time the user registered.",
@@ -344,7 +349,7 @@
           "schema": {
             "$ref": "#/backend/entities/Comment"
           },
-          "description": "Stores comments for a specific episode. All users can read (list) comments. Only authenticated users can write (create) their own comments.",
+          "description": "Stores comments for a specific episode. All users can read (list) comments. Only authenticated users can write (create) their own comments. All users can read comments",
           "params": [
             {
               "name": "episodeId",
