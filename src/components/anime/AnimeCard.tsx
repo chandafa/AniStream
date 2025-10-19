@@ -5,10 +5,18 @@ import { Flame, PlayCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Badge } from '../ui/badge';
 
-interface AnimeCardProps {
-  anime: Anime;
-  className?: string;
-  rank?: number;
+function getSeriesSlugFromUrl(url?: string, defaultSlug?: string): string {
+    if (!url || !url.startsWith('/anichin/episode/')) {
+        return cleanSlug(defaultSlug || '');
+    }
+
+    // Example url: /anichin/episode/renegade-immortal-episode-111-subtitle-indonesia/
+    const episodeSlug = url.split('/')[3] || '';
+    
+    // Extracts 'renegade-immortal' from 'renegade-immortal-episode-111-subtitle-indonesia'
+    const seriesSlug = episodeSlug.replace(/-episode-.*$/, '');
+
+    return seriesSlug || cleanSlug(defaultSlug || '');
 }
 
 function cleanSlug(slug: string): string {
@@ -41,7 +49,7 @@ export function AnimeCard({ anime, className, rank }: AnimeCardProps) {
   if (!anime) return null;
 
   // Use the 'url' for Donghua if available to get the correct series slug
-  const safeSlug = anime.url ? cleanSlug(anime.url) : cleanSlug(anime.slug);
+  const safeSlug = anime.type === 'Donghua' ? getSeriesSlugFromUrl(anime.url, anime.slug) : cleanSlug(anime.slug);
   const episodeText = anime.latestEpisode?.title || anime.current_episode;
   
   return (

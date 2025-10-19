@@ -31,9 +31,14 @@ export function cleanSlug(slug: string): string {
             // This is imperfect but better than failing completely.
             // 'renegade-immortal-episode-111-subtitle-indonesia' -> 'renegade-immortal'
             const episodeSlug = parts[2] || '';
-            const match = episodeSlug.match(/^(.*?)(-episode-.*)?$/);
+            const match = episodeSlug.match(/^(.*?)(-season-\d+)?-episode-[\d-]+-subtitle-indonesia$/);
             if (match && match[1]) {
                 return match[1];
+            }
+             // Fallback for slugs without 'episode' like 'tales-of-demons-and-gods-season-9-episode-31-35-subtitle-indonesia'
+            const simpleMatch = episodeSlug.match(/^(.*?)-episode-.*$/);
+            if (simpleMatch && simpleMatch[1]) {
+                return simpleMatch[1];
             }
         }
     }
