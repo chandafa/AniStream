@@ -64,26 +64,26 @@ export async function getDonghuaHome(page: number = 1): Promise<Anime[] | null> 
 export async function getAnimeDetails(slug: string): Promise<AnimeDetail | null> {
     const safeSlug = cleanSlug(slug);
     
-    // First, try the standard anime endpoint
+    // First, try the standard anime endpoint which has a `data` wrapper
     const animeData = await fetcher<{ data: AnimeDetail }>(`anime/${safeSlug}`, [`anime:${safeSlug}`]);
     
     if (animeData && animeData.data) {
       return animeData.data;
     }
   
-    // If the standard anime endpoint fails, try the Donghua detail endpoint as a fallback
-    console.log(`Failed to fetch from /anime/, trying /donghua/detail/ for slug: ${safeSlug}`);
+    // If the standard anime endpoint fails (returns null or no .data), try the Donghua detail endpoint.
+    // This endpoint returns the object directly, without a `data` wrapper.
     const donghuaData = await fetcher<AnimeDetail>(`donghua/detail/${safeSlug}`, [`donghua:${safeSlug}`]);
 
-    // The Donghua detail response is the detail object itself, not nested under 'data'
     if (donghuaData) {
-        // Manually add a slug property if it doesn't exist, for consistency
+        // The donghua API might not return a slug, so we add it manually for consistency.
         if (!donghuaData.slug) {
             donghuaData.slug = safeSlug;
         }
         return donghuaData;
     }
     
+    // If both endpoints fail, return null.
     return null;
 }
 
