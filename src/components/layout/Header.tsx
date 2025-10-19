@@ -135,8 +135,11 @@ export function AppHeader() {
                         </DropdownMenuContent>
                     </DropdownMenu>
                 ) : (
-                    <Button asChild size="sm">
-                        <Link href="/login">Login</Link>
+                    <Button asChild size="icon" variant="ghost">
+                        <Link href="/login">
+                            <User className="h-4 w-4" />
+                            <span className="sr-only">Login</span>
+                        </Link>
                     </Button>
                 )}
             </div>
