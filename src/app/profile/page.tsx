@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useAuth, useUser } from '@/firebase';
@@ -64,18 +63,18 @@ export default function ProfilePage() {
   };
 
   return (
-    <div className="container py-12">
+    <div className="container py-8">
       <div className="max-w-md mx-auto">
         <Card>
           <CardHeader className="items-center text-center">
-            <Avatar className="h-24 w-24 mb-4">
+            <Avatar className="h-20 w-20 mb-3">
               <AvatarImage src={user.photoURL ?? ''} alt={user.displayName ?? 'User'} />
               <AvatarFallback>{getInitials(user.displayName)}</AvatarFallback>
             </Avatar>
-            <CardTitle className="font-headline text-3xl">{user.displayName || 'Anonymous User'}</CardTitle>
+            <CardTitle className="font-headline text-2xl">{user.displayName || 'Anonymous User'}</CardTitle>
             <CardDescription>{user.email}</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-3">
             <div className="space-y-2">
                 <Button variant="outline" className="w-full justify-start">
                     <Settings /> Edit Profile

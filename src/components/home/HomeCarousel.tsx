@@ -29,7 +29,7 @@ export function HomeCarousel({ animes }: { animes: Anime[] }) {
       <CarouselContent>
         {animes.map((anime) => (
           <CarouselItem key={anime.slug}>
-            <div className="relative h-[60vh] w-full">
+            <div className="relative h-[50vh] md:h-[60vh] w-full">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={anime.poster}
@@ -40,12 +40,12 @@ export function HomeCarousel({ animes }: { animes: Anime[] }) {
               <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/70 to-transparent" />
               <div className="absolute inset-0 bg-gradient-to-r from-background via-background/50 to-transparent" />
               <div className="container relative z-10 flex h-full items-end pb-8 md:pb-16">
-                <div className="max-w-xl space-y-4">
-                  <h1 className="font-headline text-4xl md:text-6xl font-bold text-foreground animate-fade-in-down">
+                <div className="max-w-xl space-y-3 md:space-y-4">
+                  <h1 className="font-headline text-3xl md:text-5xl font-bold text-foreground animate-fade-in-down">
                     {anime.title}
                   </h1>
 
-                  <div className="flex gap-4">
+                  <div className="flex gap-2 md:gap-4">
                     <Button asChild size="lg">
                       <Link href={`/watch/${anime.latestEpisode?.slug ?? anime.slug}`}>
                         <PlayCircle />

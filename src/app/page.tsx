@@ -29,7 +29,7 @@ async function HomeContent() {
         {featuredAnime.length > 0 && <HomeCarousel animes={featuredAnime} />}
       </div>
       
-      <div className="container space-y-12 py-12">
+      <div className="container space-y-8 py-6 md:space-y-12 md:py-12">
         <AnimeList title="New Release" animes={homeData.latest_episodes} />
         <OngoingAnimeList initialAnimes={homeData.ongoing_anime} />
         <PopularToday animes={homeData.trending.slice(0, 5)} />
@@ -42,7 +42,7 @@ async function HomeContent() {
 function HomeSkeleton() {
   return (
     <>
-      <Skeleton className="h-[60vh] w-full rounded-none" />
+      <Skeleton className="h-[50vh] md:h-[60vh] w-full rounded-none" />
       <div className="container space-y-12 py-12">
         <div>
           <Skeleton className="h-8 w-48 mb-6" />

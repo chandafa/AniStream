@@ -1,4 +1,3 @@
-
 'use client';
 
 import Link from 'next/link';
@@ -29,7 +28,6 @@ const navLinks = [
 ];
 
 export function AppHeader() {
-  const [open, setOpen] = useState(false);
   const pathname = usePathname();
   const auth = useAuth();
   const { user } = useUser();
@@ -90,17 +88,17 @@ export function AppHeader() {
           </nav>
         </div>
 
-        <div className="flex flex-1 items-center justify-end space-x-2">
+        <div className="flex flex-1 items-center justify-end space-x-1">
             <Button variant="ghost" size="icon" asChild>
               <Link href="/search">
-                <Search className="h-5 w-5" />
+                <Search className="h-4 w-4" />
                 <span className="sr-only">Search</span>
               </Link>
             </Button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="secondary" size="icon" className="rounded-full">
-                <CircleUser className="h-5 w-5" />
+                <CircleUser className="h-4 w-4" />
                 <span className="sr-only">Toggle user menu</span>
               </Button>
             </DropdownMenuTrigger>

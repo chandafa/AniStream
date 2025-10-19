@@ -19,7 +19,7 @@ export function BottomNavBar() {
   const { user } = useUser();
 
   return (
-    <div className="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-background/80 backdrop-blur-lg border-t border-border/40 z-50">
+    <div className="md:hidden fixed bottom-0 left-0 right-0 h-14 bg-background/80 backdrop-blur-lg border-t border-border/40 z-50">
       <nav className="flex justify-around items-center h-full">
         {navItems.map((item) => {
             let href = item.href;
@@ -32,12 +32,12 @@ export function BottomNavBar() {
                     key={item.label}
                     href={href}
                     className={cn(
-                    "flex flex-col items-center justify-center gap-1 w-full h-full transition-colors text-muted-foreground",
+                    "flex flex-col items-center justify-center gap-0.5 w-full h-full transition-colors text-muted-foreground",
                     (pathname === href) && 'text-primary'
                     )}
                 >
-                    <item.icon className="h-6 w-6" />
-                    <span className="text-xs font-medium">{item.label}</span>
+                    <item.icon className="h-5 w-5" />
+                    <span className="text-[10px] font-medium">{item.label}</span>
                 </Link>
             )
         })}

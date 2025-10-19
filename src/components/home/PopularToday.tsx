@@ -14,9 +14,9 @@ export function PopularToday({ animes }: PopularTodayProps) {
 
   return (
     <section>
-        <div className="flex items-center justify-between mb-6">
-            <h2 className="font-headline text-2xl md:text-3xl font-bold">Trending</h2>
-            <Button variant="ghost" asChild className='hidden md:flex'>
+        <div className="flex items-center justify-between mb-4">
+            <h2 className="font-headline text-xl md:text-2xl font-bold">Trending</h2>
+            <Button variant="ghost" asChild className='hidden md:flex' size="sm">
                 <Link href="/category/ongoing">
                     View More <ChevronRight className="h-4 w-4" />
                 </Link>
@@ -29,15 +29,15 @@ export function PopularToday({ animes }: PopularTodayProps) {
         </div>
         <div className="md:hidden">
             <ScrollArea className="w-full whitespace-nowrap">
-                <div className="flex w-max space-x-4 pb-4">
+                <div className="flex w-max space-x-3 pb-4">
                     {animes.map((anime, index) => (
-                        <AnimeCard key={anime.slug} anime={anime} rank={index + 1} className="w-[150px]" />
+                        <AnimeCard key={anime.slug} anime={anime} rank={index + 1} className="w-[140px]" />
                     ))}
                 </div>
                 <ScrollBar orientation="horizontal" />
             </ScrollArea>
         </div>
-      <div className="hidden md:grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-x-8 gap-y-4">
+      <div className="hidden md:grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-x-6 gap-y-4">
         {animes.map((anime, index) => (
           <AnimeCard key={anime.slug} anime={anime} rank={index + 1} />
         ))}
