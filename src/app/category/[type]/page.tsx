@@ -15,7 +15,14 @@ type CategoryPageProps = {
 
 export async function generateMetadata({ params }: CategoryPageProps): Promise<Metadata> {
   const type = params.type;
-  const title = type.charAt(0).toUpperCase() + type.slice(1);
+  let title = '';
+  if (type === 'ongoing') {
+    title = 'Ongoing';
+  } else if (type === 'completed') {
+    title = 'Completed';
+  } else {
+    title = type.charAt(0).toUpperCase() + type.slice(1);
+  }
   return {
     title: `${title} Anime`,
     ...sharedMetadata,
@@ -25,7 +32,14 @@ export async function generateMetadata({ params }: CategoryPageProps): Promise<M
 export default async function CategoryPage({ params, searchParams }: CategoryPageProps) {
   const type = params.type;
   const page = typeof searchParams.page === "string" ? Number(searchParams.page) : 1;
-  const title = type.charAt(0).toUpperCase() + type.slice(1);
+  let title = '';
+  if (type === 'ongoing') {
+    title = 'Ongoing';
+  } else if (type === 'completed') {
+    title = 'Completed';
+  } else {
+    title = type.charAt(0).toUpperCase() + type.slice(1);
+  }
 
   let data: PaginatedAnime | null;
 
@@ -73,7 +87,15 @@ function Pagination({
     const nextPage = currentPage + 1;
   
     const buildLink = (page: number) => {
-      return `/category/${type}?page=${page}`;
+      let path = '';
+      if (type === 'ongoing') {
+        path = 'ongoing';
+      } else if (type === 'completed') {
+        path = 'completed';
+      } else {
+        path = type;
+      }
+      return `/category/${path}?page=${page}`;
     };
   
     return (

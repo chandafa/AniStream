@@ -27,7 +27,25 @@ async function fetcher<T>(path: string, tags?: string[]): Promise<T | null> {
 }
 
 export async function getHomeData(): Promise<HomeData | null> {
-  return fetcher<HomeData>('home', ['home']);
+  const data = await fetcher<{
+    trending: Anime[];
+    ongoing_anime: Anime[];
+    latest_episodes: Anime[];
+    completed_anime: Anime[];
+    featured?: Anime[];
+    genres: string[];
+  }>('home', ['home']);
+  
+  if (!data) return null;
+
+  return {
+    trending: data.trending ?? [],
+    ongoing_anime: data.ongoing_anime ?? [],
+    latest_episodes: data.latest_episodes ?? [],
+    completed_anime: data.completed_anime ?? [],
+    featured: data.featured ?? [],
+    genres: data.genres ?? [],
+  };
 }
 
 export async function getAnimeDetails(slug: string): Promise<AnimeDetail | null> {
@@ -51,9 +69,27 @@ export async function getGenres(): Promise<{genres: Genre[]} | null> {
 }
 
 export async function getOngoingAnime(page: number = 1): Promise<PaginatedAnime | null> {
-  return fetcher<PaginatedAnime>(`ongoing-anime?page=${page}`);
+  const data = await fetcher<{ paginationData: any, ongoingAnimeData: Anime[] }>(`ongoing-anime?page=${page}`);
+  if (!data) return null;
+  return {
+    anime: data.ongoingAnimeData,
+    pagination: {
+      currentPage: data.paginationData.current_page,
+      hasNextPage: data.paginationData.has_next_page,
+      totalPages: data.paginationData.last_visible_page,
+    }
+  }
 }
 
 export async function getCompletedAnime(page: number = 1): Promise<PaginatedAnime | null> {
-  return fetcher<PaginatedAnime>(`completed-anime?page=${page}`);
+  const data = await fetcher<{ paginationData: any, completedAnimeData: Anime[] }>(`completed-anime?page=${page}`);
+  if (!data) return null;
+  return {
+    anime: data.completedAnimeData,
+    pagination: {
+      currentPage: data.paginationData.current_page,
+      hasNextPage: data.paginationData.has_next_page,
+      totalPages: data.paginationData.last_visible_page,
+    }
+  }
 }
