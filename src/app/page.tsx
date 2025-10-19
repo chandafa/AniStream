@@ -1,9 +1,9 @@
 import { getHomeData } from '@/lib/api';
-import { Hero } from '@/components/anime/Hero';
 import { AnimeList } from '@/components/anime/AnimeList';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Suspense } from 'react';
 import { PopularToday } from '@/components/home/PopularToday';
+import { HomeCarousel } from '@/components/home/HomeCarousel';
 
 async function HomeContent() {
   const homeData = await getHomeData();
@@ -16,11 +16,11 @@ async function HomeContent() {
     );
   }
 
-  const featuredAnime = homeData.featured?.[0] ?? homeData.trending?.[0];
+  const featuredAnime = homeData.featured ?? homeData.trending ?? [];
 
   return (
     <>
-      {featuredAnime && <Hero anime={featuredAnime} />}
+      {featuredAnime.length > 0 && <HomeCarousel animes={featuredAnime} />}
       <div className="container space-y-12 py-12">
         <PopularToday animes={homeData.trending.slice(0, 5)} />
         <AnimeList title="New Release" animes={homeData.latest_episodes} />
