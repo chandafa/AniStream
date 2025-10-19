@@ -1,9 +1,8 @@
 
-import { getAnimeByGenre, getGenres, searchAnime } from "@/lib/api";
+import { getAnimeByGenre, searchAnime } from "@/lib/api";
 import { SearchClient } from "@/components/search/SearchClient";
 import type { Metadata } from "next";
 import { sharedMetadata } from "@/lib/metadata";
-import { notFound } from "next/navigation";
 import { AnimeList } from "@/components/anime/AnimeList";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -23,25 +22,21 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
   const genre = typeof searchParams.genre === "string" ? searchParams.genre : "";
   const page = typeof searchParams.page === "string" ? Number(searchParams.page) : 1;
 
-  const [genresData, resultsData] = await Promise.all([
-    getGenres(),
+  const resultsData = await (
     query
       ? searchAnime(query, page)
       : genre
       ? getAnimeByGenre(genre, page)
-      : Promise.resolve(null),
-  ]);
-
-  const genres = genresData?.genres || [];
-  const selectedGenre = genres.find(g => g.slug === genre);
+      : Promise.resolve(null)
+  );
 
   let title = "Search";
   if (query) title = `Results for "${query}"`;
-  else if (selectedGenre) title = `Genre: ${selectedGenre.name}`;
+  else if (genre) title = `Genre: ${genre}`;
 
   return (
     <div className="container py-8">
-      <SearchClient genres={genres} />
+      <SearchClient />
       <div className="mt-8">
         {resultsData && resultsData.anime.length > 0 ? (
           <>
@@ -58,7 +53,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
         ) : (
           !query && !genre ? (
             <p className="text-center text-muted-foreground mt-16">
-              Search for your favorite anime or select a genre to get started.
+              Search for your favorite anime to get started.
             </p>
           ) : (
             <p className="text-center text-muted-foreground mt-16">

@@ -13,18 +13,10 @@ import {
 } from "@/components/ui/select";
 import { FormEvent } from "react";
 
-export function SearchClient({ genres }: { genres: Genre[] }) {
+export function SearchClient() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-
-  const handleGenreChange = (genreSlug: string) => {
-    const params = new URLSearchParams();
-    if (genreSlug) {
-      params.set('genre', genreSlug);
-    }
-    router.push(`${pathname}?${params.toString()}`);
-  };
 
   const handleSearchSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -49,21 +41,6 @@ export function SearchClient({ genres }: { genres: Genre[] }) {
           className="w-full pl-9"
         />
       </form>
-      <div className="flex items-center gap-2">
-        <span className="text-sm text-muted-foreground">Or filter by genre:</span>
-        <Select onValueChange={handleGenreChange} defaultValue={searchParams.get('genre') || ''}>
-          <SelectTrigger className="w-full md:w-[200px]">
-            <SelectValue placeholder="Select Genre" />
-          </SelectTrigger>
-          <SelectContent>
-            {genres.map((genre) => (
-              <SelectItem key={genre.slug} value={genre.slug}>
-                {genre.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
     </div>
   );
 }

@@ -20,8 +20,6 @@ async function fetcher<T>(path: string, tags?: string[]): Promise<T | null> {
       return null;
     }
     const json = await res.json();
-    // The home endpoint has a `data` property, others might not.
-    // The search endpoint has `search_results`.
     return json.data || json;
   } catch (error) {
     console.error(`Error fetching from API path: ${path}`, error);
@@ -40,14 +38,13 @@ export async function getHomeData(): Promise<HomeData | null> {
   
   if (!data) return null;
 
-  // The API returns different keys, let's normalize them
   return {
     trending: data.trending_anime ?? [],
     ongoing_anime: data.ongoing_anime ?? [],
     latest_episodes: data.latest_episode_anime ?? [],
     completed_anime: data.completed_anime ?? [],
     featured: data.featured ?? [],
-    genres: [], // genres are fetched separately
+    genres: [],
   };
 }
 
@@ -75,22 +72,16 @@ export async function searchAnime(keyword: string, page: number = 1): Promise<Pa
 
     return {
         anime: data.search_results,
-        // The search endpoint from the docs doesn't seem to provide pagination info.
-        // We'll return a default pagination object.
         pagination: {
             currentPage: page,
-            hasNextPage: false, // Assuming no pagination data from search
-            totalPages: page,
+            hasNextPage: data.search_results.length > 0, // Assume there's a next page if results are returned
+            totalPages: page + 1, // A guess
         }
     };
 }
 
 export async function getAnimeByGenre(slug: string, page: number = 1): Promise<PaginatedAnime | null> {
   return fetcher<PaginatedAnime>(`genre/${slug}?page=${page}`);
-}
-
-export async function getGenres(): Promise<{genres: Genre[]} | null> {
-    return fetcher<{genres: Genre[]}>('genres');
 }
 
 export async function getOngoingAnime(page: number = 1): Promise<PaginatedAnime | null> {
