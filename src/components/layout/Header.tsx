@@ -61,10 +61,10 @@ export function AppHeader() {
         
         {/* Desktop Menu */}
         <div className="hidden md:flex items-center gap-6 flex-1">
-          <Link href="/" className="flex items-center space-x-2">
-            <AniStreamLogo />
-          </Link>
           <nav className="flex items-center space-x-5 text-xs font-medium">
+            <Link href="/" className="flex items-center space-x-2 mr-4">
+              <AniStreamLogo />
+            </Link>
             {navLinks.map((link) => (
               <Link
                 key={link.href}
