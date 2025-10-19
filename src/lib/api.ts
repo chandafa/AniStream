@@ -18,8 +18,8 @@ async function fetcher<T>(path: string, tags?: string[]): Promise<T | null> {
       console.error(`API fetch failed for path: ${path} with status: ${res.status}`);
       return null;
     }
-    const data = await res.json();
-    return data;
+    const json = await res.json();
+    return json.data || json; // Handle nested data property
   } catch (error) {
     console.error(`Error fetching from API path: ${path}`, error);
     return null;
@@ -31,7 +31,7 @@ export async function getHomeData(): Promise<HomeData | null> {
 }
 
 export async function getAnimeDetails(slug: string): Promise<AnimeDetail | null> {
-  return fetcher<AnimeDetail>(`anime/${slug}`, [`anime:${slug}`]);
+  return fetcher<AnimeDetail>(`detail/${slug}`, [`anime:${slug}`]);
 }
 
 export async function getEpisodeStream(slug: string): Promise<EpisodeStreamData | null> {
@@ -39,7 +39,7 @@ export async function getEpisodeStream(slug: string): Promise<EpisodeStreamData 
 }
 
 export async function searchAnime(keyword: string, page: number = 1): Promise<PaginatedAnime | null> {
-  return fetcher<PaginatedAnime>(`search/${keyword}?page=${page}`);
+  return fetcher<PaginatedAnime>(`search?q=${keyword}&page=${page}`);
 }
 
 export async function getAnimeByGenre(slug: string, page: number = 1): Promise<PaginatedAnime | null> {
@@ -47,13 +47,13 @@ export async function getAnimeByGenre(slug: string, page: number = 1): Promise<P
 }
 
 export async function getGenres(): Promise<{genres: Genre[]} | null> {
-    return fetcher<{genres: Genre[]}>('genre');
+    return fetcher<{genres: Genre[]}>('genres');
 }
 
 export async function getOngoingAnime(page: number = 1): Promise<PaginatedAnime | null> {
-  return fetcher<PaginatedAnime>(`ongoing-anime?page=${page}`);
+  return fetcher<PaginatedAnime>(`ongoing?page=${page}`);
 }
 
 export async function getCompletedAnime(page: number = 1): Promise<PaginatedAnime | null> {
-  return fetcher<PaginatedAnime>(`complete-anime/${page}`);
+  return fetcher<PaginatedAnime>(`completed?page=${page}`);
 }

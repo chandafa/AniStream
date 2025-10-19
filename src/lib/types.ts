@@ -11,13 +11,14 @@ export interface Anime {
     title: string;
     slug: string;
   };
+  current_episode?: string; // from ongoing_anime
 }
 
 export interface HomeData {
   trending: Anime[];
-  ongoing: Anime[];
-  latest: Anime[];
-  completed: Anime[];
+  ongoing_anime: Anime[];
+  latest_episodes: Anime[];
+  completed_anime: Anime[];
   featured?: Anime[];
   genres: string[];
 }

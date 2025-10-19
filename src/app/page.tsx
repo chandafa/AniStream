@@ -22,9 +22,9 @@ async function HomeContent() {
       {featuredAnime && <Hero anime={featuredAnime} />}
       <div className="container space-y-12 py-12">
         <AnimeList title="Trending Now" animes={homeData.trending} />
-        <AnimeList title="Ongoing Series" animes={homeData.ongoing} />
-        <AnimeList title="Latest Episodes" animes={homeData.latest} />
-        <AnimeList title="Completed Series" animes={homeData.completed} />
+        <AnimeList title="Ongoing Series" animes={homeData.ongoing_anime} viewMoreLink="/category/ongoing" />
+        <AnimeList title="Latest Episodes" animes={homeData.latest_episodes} />
+        <AnimeList title="Completed Series" animes={homeData.completed_anime} viewMoreLink="/category/completed"/>
       </div>
     </>
   );
