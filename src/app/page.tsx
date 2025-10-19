@@ -30,11 +30,9 @@ async function HomeContent() {
       
       <div className="container space-y-12 py-12">
         <PopularToday animes={homeData.trending.slice(0, 5)} />
-        <div className='hidden md:block'>
-            <AnimeList title="New Release" animes={homeData.latest_episodes} />
-            <AnimeList title="Ongoing Series" animes={homeData.ongoing_anime} viewMoreLink="/category/ongoing" />
-            <AnimeList title="Completed Series" animes={homeData.completed_anime} viewMoreLink="/category/completed"/>
-        </div>
+        <AnimeList title="New Release" animes={homeData.latest_episodes} />
+        <AnimeList title="Ongoing Series" animes={homeData.ongoing_anime} viewMoreLink="/category/ongoing" />
+        <AnimeList title="Completed Series" animes={homeData.completed_anime} viewMoreLink="/category/completed"/>
       </div>
     </>
   );
