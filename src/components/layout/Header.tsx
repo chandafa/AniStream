@@ -27,9 +27,10 @@ import { useToast } from '@/hooks/use-toast';
 
 const navLinks = [
   { href: '/', label: 'Home' },
-  { href: '/category/ongoing', label: 'Ongoing' },
-  { href: '/category/completed', label: 'Completed' },
-  { href: '/recommendations', label: 'For You' },
+  { href: '/search', label: 'Anime List' },
+  { href: '/schedule', label: 'Jadwal Rilis' },
+  { href: '/category/ongoing', label: 'On-Going Anime' },
+  { href: '/genres', label: 'Genre List' },
 ];
 
 export function AppHeader() {
