@@ -1,4 +1,5 @@
 
+
 import { getAnimeByGenre, searchAnime } from "@/lib/api";
 import { SearchClient } from "@/components/search/SearchClient";
 import type { Metadata } from "next";
