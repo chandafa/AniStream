@@ -17,7 +17,7 @@ export interface Anime {
 export interface UnlimitedAnimeResponse {
   status: string;
   creator: string;
-  data: Anime[];
+  anime_list: Anime[];
 }
 
 

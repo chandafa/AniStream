@@ -80,19 +80,19 @@ export async function searchAnime(keyword: string, page: number = 1): Promise<Pa
 
 export async function getAllAnime(page: number = 1): Promise<PaginatedAnime | null> {
     const data = await fetcher<UnlimitedAnimeResponse>(`unlimited`);
-    if (!data) return null;
+    if (!data || !data.anime_list) return null;
 
     const pageSize = 24;
     const startIndex = (page - 1) * pageSize;
     const endIndex = startIndex + pageSize;
-    const paginatedAnime = data.data.slice(startIndex, endIndex);
+    const paginatedAnime = data.anime_list.slice(startIndex, endIndex);
 
     return {
         anime: paginatedAnime,
         pagination: {
             currentPage: page,
-            hasNextPage: endIndex < data.data.length,
-            totalPages: Math.ceil(data.data.length / pageSize),
+            hasNextPage: endIndex < data.anime_list.length,
+            totalPages: Math.ceil(data.anime_list.length / pageSize),
         }
     };
 }
