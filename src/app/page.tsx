@@ -15,7 +15,7 @@ async function HomeContent() {
     );
   }
 
-  const featuredAnime = homeData.featured?.[0] ?? homeData.trending[0];
+  const featuredAnime = homeData.featured?.[0] ?? homeData.trending?.[0];
 
   return (
     <>
