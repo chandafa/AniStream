@@ -17,6 +17,7 @@ import { useFirestore, useDoc } from '@/firebase';
 import { toggleBookmark, isBookmarked } from '@/lib/user-data';
 import { useToast } from '@/hooks/use-toast';
 import { useEffect, useState } from 'react';
+import { cleanSlug } from '@/lib/utils';
 
 type Props = {
   params: { slug: string };

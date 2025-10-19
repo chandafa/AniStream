@@ -10,6 +10,7 @@ import {
   UnlimitedAnimeResponse,
   AnimeGroup,
 } from './types';
+import { cleanSlug } from './utils';
 
 const API_BASE_URL = 'https://www.sankavollerei.com/anime';
 
@@ -55,7 +56,8 @@ export async function getHomeData(): Promise<HomeData | null> {
 
 
 export async function getAnimeDetails(slug: string): Promise<AnimeDetail | null> {
-  const data = await fetcher<{ data: AnimeDetail }>(`anime/${slug}`, [`anime:${slug}`]);
+  const safeSlug = cleanSlug(slug);
+  const data = await fetcher<{ data: AnimeDetail }>(`anime/${safeSlug}`, [`anime:${safeSlug}`]);
   return data?.data ?? null;
 }
 

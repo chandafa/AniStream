@@ -9,6 +9,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion"
+import { cleanSlug } from '@/lib/utils';
 
 export const metadata: Metadata = {
   title: 'Daftar Semua Anime',
@@ -50,7 +51,7 @@ export default async function AnimeListPage() {
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-4 gap-y-2">
                 {group.animeList.map((anime) => (
                   <Link
-                    href={`/anime/${anime.slug}`}
+                    href={`/anime/${cleanSlug(anime.slug)}`}
                     key={anime.slug}
                     className="block text-muted-foreground hover:text-primary hover:underline py-1"
                   >

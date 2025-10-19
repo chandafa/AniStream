@@ -13,6 +13,7 @@ import { AlertTriangle, ArrowLeft, ChevronLeft, ChevronRight } from 'lucide-reac
 import { useToast } from '@/hooks/use-toast';
 import { useUser, useFirestore } from '@/firebase';
 import { addToHistory } from '@/lib/user-data';
+import { cleanSlug } from '@/lib/utils';
 
 function extractAnimeSlug(otakudesuUrl: string): string | null {
     try {
@@ -97,7 +98,7 @@ export default function WatchPage() {
     notFound();
   }
   
-  const animeSlug = extractAnimeSlug(data.anime.slug);
+  const animeSlug = cleanSlug(data.anime.slug);
 
   return (
     <div className="bg-black">
