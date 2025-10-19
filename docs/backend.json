@@ -43,6 +43,21 @@
           "items": {
             "type": "string"
           }
+        },
+        "level": {
+          "type": "number",
+          "description": "User's current level in the gamification system."
+        },
+        "xp": {
+          "type": "number",
+          "description": "User's experience points."
+        },
+        "badges": {
+          "type": "array",
+          "description": "List of badges earned by the user.",
+          "items": {
+            "type": "string"
+          }
         }
       },
       "required": [
@@ -199,6 +214,31 @@
         "episodeId",
         "url"
       ]
+    },
+    "Badge": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Badge",
+      "type": "object",
+      "description": "Represents a badge that can be earned by a user.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the badge."
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the badge."
+        },
+        "description": {
+          "type": "string",
+          "description": "How to earn the badge."
+        },
+        "icon": {
+          "type": "string",
+          "description": "Icon identifier for the badge."
+        }
+      },
+      "required": ["id", "name", "description"]
     }
   },
   "auth": {
@@ -294,3 +334,4 @@
     "reasoning": "The Firestore structure is designed to support AniStream's anime streaming platform, focusing on user authentication, anime content management, and personalized user experiences. Key considerations include authorization independence, data segregation, and clear access modeling.\n\n**Authorization Independence:**\n\n*   User-specific data (bookmarks, history) is stored under `/users/{userId}`, ensuring that access control is path-based and doesn't require complex `get()` calls to parent documents.  This eliminates hierarchical authorization dependencies, simplifies security rules, and allows atomic operations. No denormalization is needed in this case as the path itself provides the authorization context.\n\n**Data Segregation:**\n\n*   Anime, Episodes, Genres, and StreamingServers are stored in top-level collections (`/anime`, `/episodes`, `/genres`, `/streaming_servers`). This segregation simplifies security rules, as each collection has a homogeneous security posture.  Public anime content is separated from private user data.\n\n**Access Modeling:**\n\n*   User data is accessed via path-based ownership (`/users/{userId}`).\n\n**QAPs (Rules are not Filters):**\n\n*   List operations on collections like `/anime` do not require filtering based on user-specific data, enabling secure and efficient listing. User-specific data, such as bookmarks and history, are accessed via the `/users/{userId}` path, so listing does not depend on user roles.\n\n**Invariants:**\n\n*   Path-based ownership ensures the integrity of user data. Timestamps (registrationDate, lastLogin) can be enforced via rules (although not explicitly shown in this design)."
   }
 }
+
