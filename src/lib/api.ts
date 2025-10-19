@@ -63,23 +63,15 @@ export async function getEpisodeStream(slug: string): Promise<EpisodeStreamData 
 
 export async function searchAnime(keyword: string, page: number = 1): Promise<PaginatedAnime | null> {
     const data = await fetcher<{ search_results: Anime[] }>(`search/${keyword}?page=${page}`);
-    if (!data || !data.search_results) {
-        return {
-            anime: [],
-            pagination: {
-                currentPage: 1,
-                hasNextPage: false,
-                totalPages: 1,
-            }
-        };
-    }
-
+    // The search API doesn't provide pagination info, so we create a default one.
+    // It also might return nothing, so we provide a default empty state.
+    const anime = data?.search_results ?? [];
     return {
-        anime: data.search_results,
+        anime: anime,
         pagination: {
             currentPage: page,
-            hasNextPage: false, // Search API doesn't provide pagination info
-            totalPages: page,
+            hasNextPage: anime.length > 0, // Assume there's a next page if results are returned
+            totalPages: page + (anime.length > 0 ? 1 : 0), // Basic assumption
         }
     };
 }

@@ -10,9 +10,26 @@ interface AnimeCardProps {
   rank?: number;
 }
 
+function cleanSlug(slug: string): string {
+    if (slug.includes('otakudesu.best/anime/')) {
+        try {
+            const url = new URL(slug);
+            const pathParts = url.pathname.split('/').filter(Boolean);
+            return pathParts[pathParts.length - 1];
+        } catch (e) {
+            // Fallback for invalid URLs, though unlikely
+            const parts = slug.split('/');
+            return parts[parts.length - 1] || slug;
+        }
+    }
+    return slug;
+}
+
+
 export function AnimeCard({ anime, className, rank }: AnimeCardProps) {
+  const safeSlug = cleanSlug(anime.slug);
   return (
-    <Link href={`/anime/${anime.slug}`} className={cn("group block", className)}>
+    <Link href={`/anime/${safeSlug}`} className={cn("group block", className)}>
       <div className="flex items-end space-x-4">
         {rank && (
           <div className="text-8xl font-black text-stroke-2 text-transparent stroke-white/20 -mb-5">
