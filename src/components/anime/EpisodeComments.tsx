@@ -69,7 +69,7 @@ export function EpisodeComments({ episodeId }: EpisodeCommentsProps) {
   };
 
   return (
-    <Card className="bg-card/50 border-border/20 text-white">
+    <Card className="bg-transparent border-border/50">
       <CardHeader>
         <CardTitle>Comments ({comments?.length ?? 0})</CardTitle>
       </CardHeader>
@@ -85,7 +85,7 @@ export function EpisodeComments({ episodeId }: EpisodeCommentsProps) {
                 value={comment}
                 onChange={(e) => setComment(e.target.value)}
                 placeholder="Add a public comment..."
-                className="bg-background/20 border-border/50 text-white placeholder:text-muted-foreground"
+                className="bg-card/50 border-border/50 placeholder:text-muted-foreground"
                 rows={2}
               />
             </div>
@@ -101,7 +101,7 @@ export function EpisodeComments({ episodeId }: EpisodeCommentsProps) {
             </div>
           </form>
         ) : (
-          <div className="text-center py-4 bg-background/20 rounded-md">
+          <div className="text-center py-4 bg-card/30 rounded-md">
             <p className="text-muted-foreground">
               <Link href="/login" className="text-primary underline">Login</Link> to post a comment.
             </p>
@@ -121,7 +121,7 @@ export function EpisodeComments({ episodeId }: EpisodeCommentsProps) {
               </Avatar>
               <div className="flex-1">
                 <div className="flex items-center gap-2 text-sm">
-                  <span className="font-semibold text-white">{comment.username}</span>
+                  <span className="font-semibold">{comment.username}</span>
                   <span className="text-xs text-muted-foreground">
                     {comment.timestamp ? formatDistanceToNow(comment.timestamp.toDate(), { addSuffix: true }) : 'just now'}
                   </span>
@@ -135,5 +135,3 @@ export function EpisodeComments({ episodeId }: EpisodeCommentsProps) {
     </Card>
   );
 }
-
-    

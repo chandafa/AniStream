@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -103,52 +102,54 @@ export default function WatchPage() {
   const animeSlug = cleanSlug(data.anime.slug);
 
   return (
-    <div className="bg-black">
-      <div className="aspect-video w-full max-h-screen">
-        {data.stream_url ? (
-          <iframe
-            src={data.stream_url}
-            allowFullScreen
-            className="w-full h-full"
-            title="Anime Video Player"
-          ></iframe>
-        ) : (
-          <div className="w-full h-full bg-card flex items-center justify-center">
-            <p className="text-muted-foreground">Select a server to start watching.</p>
-          </div>
-        )}
+    <div className="bg-background text-foreground">
+      <div className="relative w-full bg-black video-vignette">
+        <div className="mx-auto max-w-5xl">
+            <div className="aspect-video w-full">
+                {data.stream_url ? (
+                <iframe
+                    src={data.stream_url}
+                    allowFullScreen
+                    className="w-full h-full"
+                    title="Anime Video Player"
+                ></iframe>
+                ) : (
+                <div className="w-full h-full bg-card flex items-center justify-center">
+                    <p className="text-muted-foreground">Select a server to start watching.</p>
+                </div>
+                )}
+            </div>
+        </div>
       </div>
 
-      <div className="container py-4 space-y-4 text-white">
+      <div className="container py-4 space-y-4">
         <div>
             {animeSlug && (
-                <Button variant="ghost" asChild>
+                <Button variant="ghost" asChild className="mb-2 -ml-4">
                     <Link href={`/anime/${animeSlug}`}>
                         <ArrowLeft className="h-4 w-4 mr-2" /> Back to Details
                     </Link>
                 </Button>
             )}
-            <h1 className="font-headline text-2xl font-bold">
-                {data.episode || 'Watching Anime'}
-            </h1>
+            <div className="flex flex-col md:flex-row gap-2 justify-between md:items-center">
+                <h1 className="font-headline text-xl md:text-2xl font-bold">
+                    {data.episode || 'Watching Anime'}
+                </h1>
+                <div className="flex gap-2 shrink-0">
+                    <Button variant="outline" size="sm" disabled={!data.has_previous_episode} asChild>
+                    <Link href={data.previous_episode ? `/watch/${data.previous_episode.slug}` : '#'}>
+                        <ChevronLeft className="h-4 w-4" /> Prev
+                    </Link>
+                    </Button>
+                    <Button variant="outline" size="sm" disabled={!data.has_next_episode} asChild>
+                    <Link href={data.next_episode ? `/watch/${data.next_episode.slug}` : '#'}>
+                        Next <ChevronRight className="h-4 w-4" />
+                    </Link>
+                    </Button>
+                </div>
+            </div>
         </div>
         
-        <div className="flex flex-col md:flex-row gap-4 justify-between items-center">
-            <div className='w-full md:w-auto'></div>
-          <div className="flex gap-2">
-            <Button variant="outline" disabled={!data.has_previous_episode} asChild>
-              <Link href={data.previous_episode ? `/watch/${data.previous_episode.slug}` : '#'}>
-                <ChevronLeft className="h-4 w-4" /> Prev
-              </Link>
-            </Button>
-            <Button variant="outline" disabled={!data.has_next_episode} asChild>
-              <Link href={data.next_episode ? `/watch/${data.next_episode.slug}` : '#'}>
-                Next <ChevronRight className="h-4 w-4" />
-              </Link>
-            </Button>
-          </div>
-        </div>
-
         <div className="py-6">
             <EpisodeComments episodeId={slug} />
         </div>
@@ -159,23 +160,25 @@ export default function WatchPage() {
 
 function WatchPageSkeleton() {
     return (
-      <div className="bg-black">
-        <Skeleton className="aspect-video w-full" />
-        <div className="container py-4 space-y-4">
-          <Skeleton className="h-8 w-3/4" />
-          <div className="flex flex-col md:flex-row gap-4 justify-between">
-            <div className="flex gap-2 items-center">
-                <Skeleton className="h-6 w-16" />
-                <Skeleton className="h-10 w-48" />
+        <div className="bg-background">
+            <div className="bg-black">
+                <div className="mx-auto max-w-5xl">
+                    <Skeleton className="aspect-video w-full" />
+                </div>
             </div>
-            <div className="flex gap-2">
-                <Skeleton className="h-10 w-24" />
-                <Skeleton className="h-10 w-24" />
+            <div className="container py-4 space-y-4">
+                <Skeleton className="h-6 w-48" />
+                <div className="flex flex-col md:flex-row gap-4 justify-between">
+                    <Skeleton className="h-8 w-3/4" />
+                    <div className="flex gap-2">
+                        <Skeleton className="h-9 w-24" />
+                        <Skeleton className="h-9 w-24" />
+                    </div>
+                </div>
+                <div className="py-6">
+                    <Skeleton className="h-64 w-full" />
+                </div>
             </div>
-          </div>
         </div>
-      </div>
     );
   }
-
-    
