@@ -10,6 +10,7 @@ import {
   ScheduleDay,
   UnlimitedAnimeResponse,
   AnimeGroup,
+  DonghuaEpisodeStreamData,
 } from './types';
 import { cleanSlug } from './utils';
 
@@ -97,16 +98,11 @@ async function getDonghuaDetails(slug: string): Promise<AnimeDetail | null> {
 }
 
 async function getDonghuaEpisodeStream(slug: string): Promise<EpisodeStreamData | null> {
-    const data = await fetcher<{
-        episode: string;
-        streaming: { main_url: { url: string } };
-        anime: { slug: string };
-    }>(`donghua/episode/${slug}`, [`donghua-episode:${slug}`]);
+    const data = await fetcher<DonghuaEpisodeStreamData>(`donghua/episode/${slug}`, [`donghua-episode:${slug}`]);
 
     if (!data || !data.streaming || !data.streaming.main_url) return null;
 
-    // Extract anime slug from the full otakudesu URL if present
-    const animeSlug = data.anime?.slug ? cleanSlug(data.anime.slug) : cleanSlug(slug);
+    const animeSlug = data.donghua_details?.slug ? cleanSlug(data.donghua_details.slug) : cleanSlug(slug);
 
     return {
         episode: data.episode,
@@ -114,10 +110,10 @@ async function getDonghuaEpisodeStream(slug: string): Promise<EpisodeStreamData 
         anime: {
             slug: animeSlug
         },
-        has_next_episode: false, // Donghua API doesn't provide this
-        next_episode: null,
-        has_previous_episode: false, // Donghua API doesn't provide this
-        previous_episode: null,
+        has_next_episode: !!data.navigation.next_episode,
+        next_episode: data.navigation.next_episode ? { slug: data.navigation.next_episode.slug } : null,
+        has_previous_episode: !!data.navigation.previous_episode,
+        previous_episode: data.navigation.previous_episode ? { slug: data.navigation.previous_episode.slug } : null,
     };
 }
 
@@ -128,6 +124,7 @@ export async function getAnimeDetails(slug: string): Promise<AnimeDetail | null>
     
     const animeData = await fetcher<{ data: AnimeDetail }>(`anime/${safeSlug}`, [`anime:${safeSlug}`]);
     
+    // Check if the standard anime endpoint returns valid data with episodes
     if (animeData && animeData.data && animeData.data.episode_lists && animeData.data.episode_lists.length > 0) {
       return animeData.data;
     }
@@ -174,7 +171,7 @@ export async function searchAnime(keyword: string, page: number = 1): Promise<Pa
     
     // Combine and remove duplicates that might come from both APIs
     const combined = [...anime, ...donghua];
-    const uniqueAnimes = Array.from(new Map(combined.map(item => [item['slug'], item])).values());
+    const uniqueAnimes = Array.from(new Map(combined.map(item => [cleanSlug(item.slug), item])).values());
     
     return {
         anime: uniqueAnimes,

@@ -96,6 +96,26 @@ export interface EpisodeStreamData {
   stream_url: string;
 }
 
+export interface DonghuaEpisodeStreamData {
+    episode: string;
+    streaming: {
+        main_url: {
+            url: string;
+        }
+    },
+    donghua_details: {
+        slug: string;
+    },
+    navigation: {
+        previous_episode: {
+            slug: string;
+        } | null,
+        next_episode: {
+            slug: string;
+        } | null
+    }
+}
+
 export interface Genre {
   name: string;
   slug: string;
