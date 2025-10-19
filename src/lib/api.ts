@@ -55,32 +55,51 @@ export async function getHomeData(): Promise<HomeData | null> {
   };
 }
 
+// --- Donghua Specific Functions ---
+
 export async function getDonghuaHome(page: number = 1): Promise<Anime[] | null> {
     const data = await fetcher<{ latest_release: Anime[] }>(`donghua/home/${page}`);
     return data?.latest_release ?? null;
 }
 
+async function searchDonghua(keyword: string, page: number = 1): Promise<Anime[] | null> {
+    const data = await fetcher<{ donghua: Anime[] }>(`donghua/search/${keyword}/${page}`);
+    return data?.donghua ?? [];
+}
+
+async function getDonghuaDetails(slug: string): Promise<AnimeDetail | null> {
+    const donghuaData = await fetcher<AnimeDetail>(`donghua/detail/${slug}`, [`donghua:${slug}`]);
+    if (donghuaData) {
+        if (!donghuaData.slug) {
+            donghuaData.slug = slug;
+        }
+        return donghuaData;
+    }
+    return null;
+}
+
+async function getDonghuaEpisodeStream(slug: string): Promise<EpisodeStreamData | null> {
+    const data = await fetcher<{ stream_url: string } & Omit<EpisodeStreamData, 'stream_url'>>(`donghua/episode/${slug}`, [`donghua-episode:${slug}`]);
+    if (!data || !data.stream_url) return null;
+    return { ...data, stream_url: data.stream_url };
+}
+
+// --- Combined Functions ---
 
 export async function getAnimeDetails(slug: string): Promise<AnimeDetail | null> {
     const safeSlug = cleanSlug(slug);
     
-    // First, try the standard anime endpoint which has a `data` wrapper
+    // First, try the standard anime endpoint
     const animeData = await fetcher<{ data: AnimeDetail }>(`anime/${safeSlug}`, [`anime:${safeSlug}`]);
     
     if (animeData && animeData.data) {
       return animeData.data;
     }
   
-    // If the standard anime endpoint fails (returns null or no .data), try the Donghua detail endpoint.
-    // This endpoint returns the object directly, without a `data` wrapper.
-    const donghuaData = await fetcher<AnimeDetail>(`donghua/detail/${safeSlug}`, [`donghua:${safeSlug}`]);
-
-    if (donghuaData) {
-        // The donghua API might not return a slug, so we add it manually for consistency.
-        if (!donghuaData.slug) {
-            donghuaData.slug = safeSlug;
-        }
-        return donghuaData;
+    // If the standard anime endpoint fails, try the Donghua detail endpoint.
+    const donghuaDetails = await getDonghuaDetails(safeSlug);
+    if(donghuaDetails) {
+        return donghuaDetails;
     }
     
     // If both endpoints fail, return null.
@@ -88,21 +107,41 @@ export async function getAnimeDetails(slug: string): Promise<AnimeDetail | null>
 }
 
 export async function getEpisodeStream(slug: string): Promise<EpisodeStreamData | null> {
-  const data = await fetcher<{ data: EpisodeStreamData }>(`episode/${slug}`, [`episode:${slug}`]);
-  return data?.data ?? null;
+  // Try standard anime endpoint first
+  const animeData = await fetcher<{ data: EpisodeStreamData }>(`episode/${slug}`, [`episode:${slug}`]);
+  if (animeData?.data?.stream_url) {
+      return animeData.data;
+  }
+  
+  // If it fails, try donghua endpoint
+  const donghuaData = await getDonghuaEpisodeStream(slug);
+  if (donghuaData?.stream_url) {
+      return donghuaData;
+  }
+
+  return null;
 }
 
 export async function searchAnime(keyword: string, page: number = 1): Promise<PaginatedAnime | null> {
-    const data = await fetcher<{ search_results: Anime[] }>(`search/${keyword}?page=${page}`);
-    // The search API doesn't provide pagination info, so we create a default one.
-    // It also might return nothing, so we provide a default empty state.
-    const anime = data?.search_results ?? [];
+    // Fetch from both APIs
+    const animePromise = fetcher<{ search_results: Anime[] }>(`search/${keyword}?page=${page}`);
+    const donghuaPromise = searchDonghua(keyword, page);
+
+    const [animeRes, donghuaRes] = await Promise.all([animePromise, donghuaPromise]);
+
+    const anime = animeRes?.search_results ?? [];
+    const donghua = donghuaRes ?? [];
+    
+    // Combine and remove duplicates that might come from both APIs
+    const combined = [...anime, ...donghua];
+    const uniqueAnimes = Array.from(new Map(combined.map(item => [item['slug'], item])).values());
+    
     return {
-        anime: anime,
+        anime: uniqueAnimes,
         pagination: {
             currentPage: page,
-            hasNextPage: anime.length > 0, // Assume there's a next page if results are returned
-            totalPages: page + (anime.length > 0 ? 1 : 0), // Basic assumption
+            hasNextPage: uniqueAnimes.length > 0, // Basic assumption
+            totalPages: page + (uniqueAnimes.length > 0 ? 1 : 0),
         }
     };
 }
@@ -111,13 +150,12 @@ export async function getAllAnime(): Promise<AnimeGroup[] | null> {
     const data = await fetcher<UnlimitedAnimeResponse>(`unlimited`);
     if (!data || !data.data || !data.data.list) return null;
     
-    // The new structure is an array of groups, so we can return it directly.
     return data.data.list.map(group => ({
         ...group,
         animeList: group.animeList.map(anime => ({
             slug: anime.animeId,
             title: anime.title,
-            poster: '', // The new endpoint doesn't provide a poster, so we'll leave it empty.
+            poster: '',
         }))
     }));
 }

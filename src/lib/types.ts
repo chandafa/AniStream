@@ -1,4 +1,5 @@
 
+
 import { Timestamp } from "firebase/firestore";
 
 // Based on the provided API documentation and common anime API structures
@@ -62,7 +63,7 @@ export interface HomeData {
 
 export interface Episode {
     episode: string; // e.g., "Sakamoto Days Part 2 Episode 1 Subtitle Indonesia"
-    episode_number: number;
+    episode_number?: number; // Made optional as Donghua API might not have it
     slug: string;
 }
 
@@ -70,6 +71,8 @@ export interface AnimeDetail extends Anime {
   synopsis: string;
   genres: { name: string; slug: string }[];
   episode_lists: Episode[];
+  alter_title?: string;
+  episodes_count?: string;
 }
 
 export interface StreamServer {
@@ -78,7 +81,7 @@ export interface StreamServer {
 }
 
 export interface EpisodeStreamData {
-  episode: string;
+  episode?: string; // Donghua API may not have this
   anime: {
     slug: string;
   };
