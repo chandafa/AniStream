@@ -96,15 +96,26 @@ export async function getAllAnime(): Promise<AnimeGroup[] | null> {
 
 
 export async function getAnimeByGenre(slug: string, page: number = 1): Promise<PaginatedAnime | null> {
-  const data = await fetcher<{data: {anime: Anime[], pagination: any}}>(`genre/${slug}?page=${page}`);
-  if (!data || !data.data) return null;
+  const data = await fetcher<{data: {anime: Anime[]}}>(`genre/${slug}?page=${page}`);
+  if (!data || !data.data || !data.data.anime) {
+    return {
+      anime: [],
+      pagination: {
+        currentPage: page,
+        hasNextPage: false,
+        totalPages: page,
+      }
+    };
+  }
+
+  const anime = data.data.anime;
 
   return {
-    anime: data.data.anime,
+    anime: anime,
     pagination: {
-      currentPage: data.data.pagination.current_page,
-      hasNextPage: data.data.pagination.has_next_page,
-      totalPages: data.data.pagination.last_visible_page,
+      currentPage: page,
+      hasNextPage: anime.length > 0,
+      totalPages: page + (anime.length > 0 ? 1 : 0),
     },
   };
 }

@@ -1,6 +1,7 @@
 
 
 
+
 import { getAnimeByGenre, searchAnime } from "@/lib/api";
 import { SearchClient } from "@/components/search/SearchClient";
 import type { Metadata } from "next";
@@ -34,7 +35,7 @@ async function SearchResults({ query, genre, page }: { query?: string, genre?: s
     
       let title = "";
       if (query) title = `Results for "${query}"`;
-      else if (genre) title = `Genre: ${genre}`;
+      else if (genre) title = `Genre: ${genre.charAt(0).toUpperCase() + genre.slice(1)}`;
     
       if (!resultsData || resultsData.anime.length === 0) {
         return (
