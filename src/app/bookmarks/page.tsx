@@ -11,6 +11,7 @@ import { useEffect, useState } from 'react';
 import { getAnimeDetails } from '@/lib/api';
 import { Loader2 } from 'lucide-react';
 import Link from 'next/link';
+import { Button } from '@/components/ui/button';
 
 // Since this is a client component, we set the title dynamically
 // export const metadata: Metadata = {
@@ -32,7 +33,7 @@ export default function BookmarksPage() {
   const [isLoadingAnime, setIsLoadingAnime] = useState(true);
 
   useEffect(() => {
-    document.title = 'My Bookmarks | OtakuStream';
+    document.title = 'My Bookmarks | AniStream';
 
     const fetchBookmarkedAnime = async () => {
       if (userData && userData.bookmarks) {

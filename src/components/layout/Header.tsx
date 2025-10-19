@@ -4,13 +4,8 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { CircleUser, Menu, Search } from 'lucide-react';
-import { OtakuStreamLogo } from '@/components/icons';
+import { AniStreamLogo } from '@/components/icons';
 import { Button } from '@/components/ui/button';
-import {
-  Sheet,
-  SheetContent,
-  SheetTrigger,
-} from '@/components/ui/sheet';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -70,14 +65,14 @@ export function AppHeader() {
         {/* Mobile Logo */}
         <div className="md:hidden flex-1">
             <Link href="/" className="flex items-center space-x-2">
-                <OtakuStreamLogo />
+                <AniStreamLogo />
             </Link>
         </div>
         
         {/* Desktop Menu */}
         <div className="mr-4 hidden md:flex">
           <Link href="/" className="mr-6 flex items-center space-x-2">
-            <OtakuStreamLogo />
+            <AniStreamLogo />
           </Link>
           <nav className="flex items-center space-x-6 text-sm font-medium">
             {navLinks.map((link) => (

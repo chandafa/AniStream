@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Button } from '@/components/ui/button';
@@ -74,7 +75,7 @@ export default function RegisterPage() {
         <CardHeader className="text-center">
           <CardTitle className="font-headline text-2xl">Create an Account</CardTitle>
           <CardDescription>
-            Join OtakuStream to start bookmarking and tracking your favorite anime.
+            Join AniStream to start bookmarking and tracking your favorite anime.
           </CardDescription>
         </CardHeader>
         <CardContent>

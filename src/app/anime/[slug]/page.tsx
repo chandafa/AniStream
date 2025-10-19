@@ -49,7 +49,7 @@ export default function AnimeDetailPage({ params: serverParams }: Props) {
       const animeData = await getAnimeDetails(slug);
       if (animeData) {
         setAnime(animeData);
-        document.title = `${animeData.title} | OtakuStream`;
+        document.title = `${animeData.title} | AniStream`;
       } else {
         notFound();
       }

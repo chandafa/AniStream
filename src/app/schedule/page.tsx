@@ -5,7 +5,6 @@ import { sharedMetadata } from '@/lib/metadata';
 import { getSchedule } from '@/lib/api';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent } from '@/components/ui/card';
-import Image from 'next/image';
 
 export const metadata: Metadata = {
   title: 'Jadwal Rilis',

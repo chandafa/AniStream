@@ -32,7 +32,7 @@ export default function HistoryPage() {
   const [isLoadingAnime, setIsLoadingAnime] = useState(true);
 
   useEffect(() => {
-    document.title = 'Viewing History | OtakuStream';
+    document.title = 'Viewing History | AniStream';
 
     const fetchHistoryAnime = async () => {
       if (userData && userData.history) {

@@ -37,7 +37,7 @@ export default async function AnimeListPage() {
       <div className="max-w-4xl mx-auto text-center mb-8">
         <h1 className="font-headline text-4xl md:text-5xl font-bold">Daftar Semua Anime</h1>
         <p className="mt-4 text-lg text-muted-foreground">
-          Jelajahi semua anime yang tersedia di OtakuStream.
+          Jelajahi semua anime yang tersedia di AniStream.
         </p>
       </div>
 

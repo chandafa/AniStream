@@ -1,5 +1,6 @@
+
 import Link from 'next/link';
-import { OtakuStreamLogo } from '@/components/icons';
+import { AniStreamLogo } from '@/components/icons';
 
 export function AppFooter() {
   return (
@@ -8,7 +9,7 @@ export function AppFooter() {
         <div className="flex flex-col md:flex-row justify-between items-center gap-8">
           <div className="flex flex-col items-center md:items-start gap-4">
             <Link href="/">
-              <OtakuStreamLogo />
+              <AniStreamLogo />
             </Link>
             <p className="max-w-xs text-center md:text-left text-sm text-muted-foreground">
               Your ultimate destination for watching anime online.
@@ -35,7 +36,7 @@ export function AppFooter() {
         </div>
         <div className="mt-8 border-t pt-8">
           <p className="text-center text-xs text-muted-foreground">
-            © {new Date().getFullYear()} OtakuStream. All rights reserved. This site does not store any files on our server, we only link to the media which is hosted on 3rd party services.
+            © {new Date().getFullYear()} AniStream. All rights reserved. This site does not store any files on our server, we only link to the media which is hosted on 3rd party services.
           </p>
         </div>
       </div>

@@ -19,7 +19,7 @@ export default function ProfilePage() {
   const router = useRouter();
 
   useEffect(() => {
-    document.title = 'My Profile | OtakuStream';
+    document.title = 'My Profile | AniStream';
   }, []);
 
   const handleLogout = async () => {

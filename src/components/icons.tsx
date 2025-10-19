@@ -1,6 +1,7 @@
+
 import type { SVGProps } from "react";
 
-export function OtakuStreamLogo(props: SVGProps<SVGSVGElement>) {
+export function AniStreamLogo(props: SVGProps<SVGSVGElement>) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -23,7 +24,7 @@ export function OtakuStreamLogo(props: SVGProps<SVGSVGElement>) {
         fontWeight="bold"
         fill="url(#grad1)"
       >
-        OtakuStream
+        AniStream
       </text>
     </svg>
   );
