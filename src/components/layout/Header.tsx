@@ -114,6 +114,7 @@ export function AppHeader() {
                 <>
                   <DropdownMenuLabel>{user.displayName || user.email}</DropdownMenuLabel>
                   <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild><Link href="/profile">Profile</Link></DropdownMenuItem>
                   <DropdownMenuItem asChild><Link href="/bookmarks">Bookmarks</Link></DropdownMenuItem>
                   <DropdownMenuItem asChild><Link href="/history">History</Link></DropdownMenuItem>
                   <DropdownMenuSeparator />
