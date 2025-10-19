@@ -13,6 +13,7 @@ interface AnimeCardProps {
 
 function cleanSlug(slug: string): string {
     if (!slug) return '';
+    // Handle Otakudesu URLs specifically
     if (slug.includes('otakudesu.best/anime/')) {
         try {
             const url = new URL(slug);
@@ -23,12 +24,24 @@ function cleanSlug(slug: string): string {
             return parts[parts.length - 1] || slug;
         }
     }
+    // Handle Anichin URLs from Donghua API
+    if (slug.startsWith('/anichin/')) {
+        const parts = slug.split('/').filter(Boolean);
+        // Assumes URL is like /anichin/anime/the-slug/
+        if (parts[0] === 'anichin' && parts[1] === 'anime' && parts[2]) {
+            return parts[2];
+        }
+    }
+
+    // Default case for simple slugs
     return slug;
 }
 
 export function AnimeCard({ anime, className, rank }: AnimeCardProps) {
   if (!anime) return null;
-  const safeSlug = cleanSlug(anime.slug);
+
+  // Use the 'url' for Donghua if available to get the correct series slug
+  const safeSlug = anime.url ? cleanSlug(anime.url) : cleanSlug(anime.slug);
   const episodeText = anime.latestEpisode?.title || anime.current_episode;
   
   return (

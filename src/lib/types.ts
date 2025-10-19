@@ -15,6 +15,7 @@ export interface Anime {
     slug: string;
   };
   current_episode?: string; // from ongoing_anime
+  url?: string; // For Donghua API which contains the correct link
 }
 
 // Type for the raw anime item from the /unlimited endpoint
@@ -126,5 +127,3 @@ export interface Comment {
     text: string;
     timestamp: Timestamp;
 }
-
-    
