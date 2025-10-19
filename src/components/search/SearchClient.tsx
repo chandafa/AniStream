@@ -1,3 +1,4 @@
+
 'use client';
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
@@ -11,12 +12,24 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { FormEvent } from "react";
+import { FormEvent, useEffect, useState } from "react";
+import { getGenres } from "@/lib/api";
 
 export function SearchClient() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const [genres, setGenres] = useState<Genre[]>([]);
+
+  useEffect(() => {
+    const fetchGenres = async () => {
+      const genreData = await getGenres();
+      if (genreData) {
+        setGenres(genreData);
+      }
+    };
+    fetchGenres();
+  }, []);
 
   const handleSearchSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -26,6 +39,18 @@ export function SearchClient() {
     if (query.trim()) {
         params.set('q', query);
         router.push(`${pathname}?${params.toString()}`);
+    } else {
+        router.push(pathname); // Clear search if query is empty
+    }
+  };
+
+  const handleGenreChange = (slug: string) => {
+    if (slug) {
+        const params = new URLSearchParams();
+        params.set('genre', slug);
+        router.push(`${pathname}?${params.toString()}`);
+    } else {
+        router.push(pathname); // Clear genre if "All" is selected
     }
   };
 
@@ -41,6 +66,19 @@ export function SearchClient() {
           className="w-full pl-9"
         />
       </form>
+      <Select onValueChange={handleGenreChange} defaultValue={searchParams.get('genre') || ''}>
+        <SelectTrigger className="w-full md:w-[200px]">
+          <SelectValue placeholder="Filter by genre" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="">All Genres</SelectItem>
+          {genres.map((genre) => (
+            <SelectItem key={genre.slug} value={genre.slug}>
+              {genre.name}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
     </div>
   );
 }

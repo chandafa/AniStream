@@ -141,3 +141,8 @@ export async function getSchedule(): Promise<ScheduleDay[] | null> {
   const data = await fetcher<{ data: ScheduleDay[] }>('schedule', ['schedule']);
   return data?.data ?? null;
 }
+
+export async function getGenres(): Promise<Genre[] | null> {
+    const data = await fetcher<{ data: Genre[] }>('genre', ['genres']);
+    return data?.data ?? null;
+}
