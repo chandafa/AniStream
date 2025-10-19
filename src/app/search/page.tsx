@@ -1,3 +1,4 @@
+
 import { getAnimeByGenre, getGenres, searchAnime } from "@/lib/api";
 import { SearchClient } from "@/components/search/SearchClient";
 import type { Metadata } from "next";
@@ -45,7 +46,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
         {resultsData && resultsData.anime.length > 0 ? (
           <>
             <AnimeList title={title} animes={resultsData.anime} />
-            {resultsData.pagination && (
+            {resultsData.pagination && (resultsData.pagination.hasNextPage || resultsData.pagination.currentPage > 1) && (
               <Pagination
                 currentPage={page}
                 hasNextPage={resultsData.pagination.hasNextPage}

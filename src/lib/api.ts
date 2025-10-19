@@ -1,3 +1,4 @@
+
 import {
   Anime,
   AnimeDetail,
@@ -19,7 +20,9 @@ async function fetcher<T>(path: string, tags?: string[]): Promise<T | null> {
       return null;
     }
     const json = await res.json();
-    return json.data || json; // Handle nested data property
+    // The home endpoint has a `data` property, others might not.
+    // The search endpoint has `search_results`.
+    return json.data || json;
   } catch (error) {
     console.error(`Error fetching from API path: ${path}`, error);
     return null;
@@ -28,25 +31,26 @@ async function fetcher<T>(path: string, tags?: string[]): Promise<T | null> {
 
 export async function getHomeData(): Promise<HomeData | null> {
   const data = await fetcher<{
-    trending: Anime[];
+    trending_anime: Anime[];
     ongoing_anime: Anime[];
-    latest_episodes: Anime[];
+    latest_episode_anime: Anime[];
     completed_anime: Anime[];
     featured?: Anime[];
-    genres: string[];
   }>('home', ['home']);
   
   if (!data) return null;
 
+  // The API returns different keys, let's normalize them
   return {
-    trending: data.trending ?? [],
+    trending: data.trending_anime ?? [],
     ongoing_anime: data.ongoing_anime ?? [],
-    latest_episodes: data.latest_episodes ?? [],
+    latest_episodes: data.latest_episode_anime ?? [],
     completed_anime: data.completed_anime ?? [],
     featured: data.featured ?? [],
-    genres: data.genres ?? [],
+    genres: [], // genres are fetched separately
   };
 }
+
 
 export async function getAnimeDetails(slug: string): Promise<AnimeDetail | null> {
   return fetcher<AnimeDetail>(`anime/${slug}`, [`anime:${slug}`]);
@@ -57,7 +61,28 @@ export async function getEpisodeStream(slug: string): Promise<EpisodeStreamData 
 }
 
 export async function searchAnime(keyword: string, page: number = 1): Promise<PaginatedAnime | null> {
-  return fetcher<PaginatedAnime>(`search/${keyword}?page=${page}`);
+    const data = await fetcher<{ search_results: Anime[] }>(`search/${keyword}?page=${page}`);
+    if (!data || !data.search_results) {
+        return {
+            anime: [],
+            pagination: {
+                currentPage: 1,
+                hasNextPage: false,
+                totalPages: 1,
+            }
+        };
+    }
+
+    return {
+        anime: data.search_results,
+        // The search endpoint from the docs doesn't seem to provide pagination info.
+        // We'll return a default pagination object.
+        pagination: {
+            currentPage: page,
+            hasNextPage: false, // Assuming no pagination data from search
+            totalPages: page,
+        }
+    };
 }
 
 export async function getAnimeByGenre(slug: string, page: number = 1): Promise<PaginatedAnime | null> {
