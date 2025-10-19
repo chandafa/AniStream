@@ -1,3 +1,4 @@
+
 'use client';
 
 import Link from 'next/link';
@@ -66,7 +67,7 @@ export function AppHeader() {
         isHome ? "absolute top-0 z-50 w-full bg-transparent border-none md:sticky md:bg-background/95 md:border-b" : ""
     )}>
       <div className="container flex h-14 items-center">
-        {/* Mobile Menu */}
+        {/* Mobile Logo */}
         <div className="md:hidden flex-1">
             <Link href="/" className="flex items-center space-x-2">
                 <OtakuStreamLogo />
@@ -94,38 +95,6 @@ export function AppHeader() {
           </nav>
         </div>
 
-        <Sheet open={open} onOpenChange={setOpen}>
-          <SheetTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="md:hidden"
-              aria-label="Open menu"
-            >
-              <Menu className="h-5 w-5" />
-            </Button>
-          </SheetTrigger>
-          <SheetContent side="left">
-            <Link href="/" className="mb-8" onClick={() => setOpen(false)}>
-              <OtakuStreamLogo />
-            </Link>
-            <nav className="flex flex-col space-y-4">
-              {[...navLinks, { href: '/search', label: 'Search' }].map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  onClick={() => setOpen(false)}
-                  className={cn(
-                    "text-lg font-medium transition-colors hover:text-primary",
-                    pathname === link.href ? "text-primary" : "text-foreground"
-                )}
-                >
-                  {link.label}
-                </Link>
-              ))}
-            </nav>
-          </SheetContent>
-        </Sheet>
         <div className="flex flex-1 items-center justify-end space-x-2">
             <Button variant="ghost" size="icon" asChild>
               <Link href="/search">
