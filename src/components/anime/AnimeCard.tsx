@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import type { Anime } from '@/lib/types';
-import { Card, CardContent, CardFooter } from '@/components/ui/card';
-import { PlayCircle } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Flame, PlayCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Badge } from '../ui/badge';
 
@@ -19,7 +19,6 @@ function cleanSlug(slug: string): string {
             const pathParts = url.pathname.split('/').filter(Boolean);
             return pathParts[pathParts.length - 1];
         } catch (e) {
-            // Fallback for invalid URLs, though unlikely
             const parts = slug.split('/');
             return parts[parts.length - 1] || slug;
         }
@@ -27,59 +26,56 @@ function cleanSlug(slug: string): string {
     return slug;
 }
 
-
 export function AnimeCard({ anime, className, rank }: AnimeCardProps) {
   if (!anime) return null;
   const safeSlug = cleanSlug(anime.slug);
+  const episodeText = anime.latestEpisode?.title || anime.current_episode;
   
   return (
-    <Link href={`/anime/${safeSlug}`} className={cn("group block", className)}>
-      <div className="flex items-end space-x-2 md:space-x-3">
-        {rank && (
-          <div className="text-6xl md:text-7xl font-black text-stroke-2 text-transparent stroke-white/20 -mb-3 md:-mb-4" style={{ WebkitTextStroke: '2px hsla(0,0%,100%,.2)' }}>
-            {rank}
-          </div>
-        )}
-        <Card className="overflow-hidden transition-all duration-300 ease-in-out hover:shadow-lg hover:shadow-primary/20 hover:border-primary/50 w-full">
+    <div className={cn("group", className)}>
+        <Card className="overflow-hidden transition-all duration-300 ease-in-out hover:shadow-lg hover:shadow-primary/20 hover:border-primary/50 w-full rounded-lg">
           <CardContent className="p-0">
-            <div className="relative aspect-[2/3] w-full">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={anime.poster}
-                alt={`Poster of ${anime.title}`}
-                className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-105"
-                loading="lazy"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-                  <PlayCircle className="h-10 w-10 text-white/80" />
-              </div>
-              {anime.rating && !rank && (
-                <Badge className="absolute top-1.5 right-1.5">{anime.rating}</Badge>
-              )}
-               {anime.rating && rank && (
-                <Badge variant="secondary" className="absolute top-1.5 left-1.5">{anime.rating}</Badge>
-              )}
-              {anime.latestEpisode && (
-                  <div className="absolute bottom-0 left-0 right-0 bg-black/50 p-1 text-[9px] text-white backdrop-blur-sm">
-                      {anime.latestEpisode.title}
+            <Link href={`/anime/${safeSlug}`}>
+                <div className="relative aspect-[2/3] w-full">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                    src={anime.poster}
+                    alt={`Poster of ${anime.title}`}
+                    className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-105"
+                    loading="lazy"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
+                <div className="absolute inset-0 items-center justify-center flex opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    <PlayCircle className="h-10 w-10 text-white/80" />
+                </div>
+                
+                {rank && (
+                  <div className="absolute top-2 left-2 h-6 w-6 bg-red-600/90 rounded-full flex items-center justify-center">
+                    <Flame className="h-4 w-4 text-white" />
                   </div>
-              )}
-              {anime.current_episode && (
-                  <div className="absolute bottom-0 left-0 right-0 bg-black/50 p-1 text-[9px] text-white backdrop-blur-sm">
-                      {anime.current_episode}
-                  </div>
-              )}
-            </div>
+                )}
+                
+                {anime.type && anime.type !== "Movie" && (
+                  <Badge className="absolute top-2 right-2 bg-red-600/90 text-white rounded-md">{anime.type}</Badge>
+                )}
+                
+                {episodeText && (
+                  <Badge variant="secondary" className="absolute bottom-2 left-2 bg-black/70 text-white rounded-md">
+                    {episodeText.replace(" Episode", "")}
+                  </Badge>
+                )}
+
+                <Badge className="absolute bottom-2 right-2 bg-yellow-500 text-black rounded-md">Sub</Badge>
+
+                </div>
+            </Link>
           </CardContent>
-          {!rank && (
-            <CardFooter className="p-2 pt-2 min-h-10">
-                <h3 className="font-headline text-[11px] md:text-xs font-semibold line-clamp-2 text-foreground group-hover:text-primary transition-colors">
-                  {anime.title}
-                </h3>
-            </CardFooter>
-          )}
         </Card>
-      </div>
-    </Link>
+      <Link href={`/anime/${safeSlug}`}>
+        <h3 className="mt-2 font-headline text-sm font-semibold line-clamp-2 text-foreground group-hover:text-primary transition-colors">
+            {anime.title}
+        </h3>
+      </Link>
+    </div>
   );
 }
