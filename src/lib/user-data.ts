@@ -1,5 +1,6 @@
 
-import { doc, getDoc, updateDoc, setDoc, arrayUnion, arrayRemove, Firestore, increment } from 'firebase/firestore';
+
+import { doc, getDoc, updateDoc, setDoc, arrayUnion, arrayRemove, Firestore, increment, addDoc, collection, serverTimestamp } from 'firebase/firestore';
 
 const XP_PER_WATCH = 10;
 const XP_PER_BOOKMARK = 5;
@@ -70,3 +71,23 @@ export const addToHistory = async (
     }
 };
 
+export const addComment = async (
+    firestore: Firestore,
+    episodeId: string,
+    userId: string,
+    username: string,
+    userPhotoURL: string | null,
+    text: string
+) => {
+    const commentsColRef = collection(firestore, 'episodes', episodeId, 'comments');
+    await addDoc(commentsColRef, {
+        episodeId,
+        userId,
+        username,
+        userPhotoURL: userPhotoURL ?? '',
+        text,
+        timestamp: serverTimestamp(),
+    });
+};
+
+    

@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -14,6 +15,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useUser, useFirestore } from '@/firebase';
 import { addToHistory } from '@/lib/user-data';
 import { cleanSlug } from '@/lib/utils';
+import { EpisodeComments } from '@/components/anime/EpisodeComments';
 
 function extractAnimeSlug(otakudesuUrl: string): string | null {
     try {
@@ -117,7 +119,7 @@ export default function WatchPage() {
         )}
       </div>
 
-      <div className="container py-4 space-y-4">
+      <div className="container py-4 space-y-4 text-white">
         <div>
             {animeSlug && (
                 <Button variant="ghost" asChild>
@@ -126,7 +128,7 @@ export default function WatchPage() {
                     </Link>
                 </Button>
             )}
-            <h1 className="font-headline text-2xl font-bold text-white">
+            <h1 className="font-headline text-2xl font-bold">
                 {data.episode || 'Watching Anime'}
             </h1>
         </div>
@@ -145,6 +147,10 @@ export default function WatchPage() {
               </Link>
             </Button>
           </div>
+        </div>
+
+        <div className="py-6">
+            <EpisodeComments episodeId={slug} />
         </div>
       </div>
     </div>
@@ -171,3 +177,5 @@ function WatchPageSkeleton() {
       </div>
     );
   }
+
+    

@@ -1,3 +1,6 @@
+
+import { Timestamp } from "firebase/firestore";
+
 // Based on the provided API documentation and common anime API structures
 
 export interface Anime {
@@ -113,3 +116,15 @@ export interface ScheduleDay {
     day: string;
     anime_list: ScheduleAnime[];
 }
+
+export interface Comment {
+    id: string;
+    episodeId: string;
+    userId: string;
+    username: string;
+    userPhotoURL: string;
+    text: string;
+    timestamp: Timestamp;
+}
+
+    

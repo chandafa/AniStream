@@ -239,6 +239,45 @@
         }
       },
       "required": ["id", "name", "description"]
+    },
+    "Comment": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Comment",
+      "type": "object",
+      "description": "Represents a user comment on an episode.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the comment."
+        },
+        "episodeId": {
+          "type": "string",
+          "description": "Reference to the Episode this comment belongs to."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to the User who posted the comment."
+        },
+        "username": {
+          "type": "string",
+          "description": "Username of the user who posted the comment."
+        },
+        "userPhotoURL": {
+          "type": "string",
+          "description": "URL of the user's profile picture.",
+          "format": "uri"
+        },
+        "text": {
+          "type": "string",
+          "description": "The content of the comment."
+        },
+        "timestamp": {
+          "type": "string",
+          "description": "The date and time the comment was posted.",
+          "format": "date-time"
+        }
+      },
+      "required": ["id", "episodeId", "userId", "username", "text", "timestamp"]
     }
   },
   "auth": {
@@ -299,6 +338,26 @@
         }
       },
       {
+        "path": "/episodes/{episodeId}/comments/{commentId}",
+        "definition": {
+          "entityName": "Comment",
+          "schema": {
+            "$ref": "#/backend/entities/Comment"
+          },
+          "description": "Stores comments for a specific episode. Accessible to all users for reading, but only authenticated users can write.",
+          "params": [
+            {
+              "name": "episodeId",
+              "description": "The unique identifier of the episode."
+            },
+            {
+              "name": "commentId",
+              "description": "The unique identifier of the comment."
+            }
+          ]
+        }
+      },
+      {
         "path": "/genres/{genreId}",
         "definition": {
           "entityName": "Genre",
@@ -331,7 +390,8 @@
         }
       }
     ],
-    "reasoning": "The Firestore structure is designed to support AniStream's anime streaming platform, focusing on user authentication, anime content management, and personalized user experiences. Key considerations include authorization independence, data segregation, and clear access modeling.\n\n**Authorization Independence:**\n\n*   User-specific data (bookmarks, history) is stored under `/users/{userId}`, ensuring that access control is path-based and doesn't require complex `get()` calls to parent documents.  This eliminates hierarchical authorization dependencies, simplifies security rules, and allows atomic operations. No denormalization is needed in this case as the path itself provides the authorization context.\n\n**Data Segregation:**\n\n*   Anime, Episodes, Genres, and StreamingServers are stored in top-level collections (`/anime`, `/episodes`, `/genres`, `/streaming_servers`). This segregation simplifies security rules, as each collection has a homogeneous security posture.  Public anime content is separated from private user data.\n\n**Access Modeling:**\n\n*   User data is accessed via path-based ownership (`/users/{userId}`).\n\n**QAPs (Rules are not Filters):**\n\n*   List operations on collections like `/anime` do not require filtering based on user-specific data, enabling secure and efficient listing. User-specific data, such as bookmarks and history, are accessed via the `/users/{userId}` path, so listing does not depend on user roles.\n\n**Invariants:**\n\n*   Path-based ownership ensures the integrity of user data. Timestamps (registrationDate, lastLogin) can be enforced via rules (although not explicitly shown in this design)."
+    "reasoning": "The Firestore structure is designed to support AniStream's anime streaming platform, focusing on user authentication, anime content management, and personalized user experiences. Key considerations include authorization independence, data segregation, and clear access modeling.\n\n**Authorization Independence:**\n\n*   User-specific data (bookmarks, history) is stored under `/users/{userId}`, ensuring that access control is path-based and doesn't require complex `get()` calls to parent documents.  This eliminates hierarchical authorization dependencies, simplifies security rules, and allows atomic operations. No denormalization is needed in this case as the path itself provides the authorization context.\n\n**Data Segregation:**\n\n*   Anime, Episodes, Genres, and StreamingServers are stored in top-level collections (`/anime`, `/episodes`, `/genres`, `/streaming_servers`). This segregation simplifies security rules, as each collection has a homogeneous security posture.  Public anime content is separated from private user data.\n\n**Access Modeling:**\n\n*   User data is accessed via path-based ownership (`/users/{userId}`). Comments are stored as a subcollection under episodes to enable efficient querying and path-based security rules.\n\n**QAPs (Rules are not Filters):**\n\n*   List operations on collections like `/anime` do not require filtering based on user-specific data, enabling secure and efficient listing. User-specific data, such as bookmarks and history, are accessed via the `/users/{userId}` path, so listing does not depend on user roles.\n\n**Invariants:**\n\n*   Path-based ownership ensures the integrity of user data. Timestamps (registrationDate, lastLogin) can be enforced via rules (although not explicitly shown in this design)."
   }
 }
 
+    
