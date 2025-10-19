@@ -1,4 +1,3 @@
-import Image from 'next/image';
 import Link from 'next/link';
 import type { Anime } from '@/lib/types';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
@@ -14,13 +13,12 @@ export function AnimeCard({ anime }: AnimeCardProps) {
       <Card className="overflow-hidden transition-all duration-300 ease-in-out hover:shadow-lg hover:shadow-primary/20 hover:border-primary/50">
         <CardContent className="p-0">
           <div className="relative aspect-[2/3] w-full">
-            <Image
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
               src={anime.poster}
               alt={`Poster of ${anime.title}`}
-              fill
-              sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
-              className="object-cover transition-transform duration-300 group-hover:scale-105"
-              data-ai-hint="anime poster"
+              className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-105"
+              loading="lazy"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
                 <PlayCircle className="h-16 w-16 text-white/80" />
