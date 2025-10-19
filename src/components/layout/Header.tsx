@@ -51,20 +51,17 @@ export function AppHeader() {
         "md:sticky",
         isHome ? "absolute top-0 z-50 w-full bg-transparent border-none md:sticky md:bg-background/95 md:border-b" : ""
     )}>
-      <div className="container flex h-12 items-center">
-        {/* Mobile Logo */}
-        <div className="md:hidden flex-1">
+      <div className="container flex h-12 items-center justify-between">
+        {/* Left Section: Logo */}
+        <div className="flex items-center">
             <Link href="/" className="flex items-center space-x-2">
                 <AniStreamLogo />
             </Link>
         </div>
         
-        {/* Desktop Menu */}
-        <div className="hidden md:flex items-center gap-6 flex-1">
+        {/* Center Section: Desktop Nav */}
+        <div className="hidden md:flex flex-1 justify-center">
           <nav className="flex items-center space-x-5 text-xs font-medium">
-            <Link href="/" className="flex items-center space-x-2 mr-4">
-              <AniStreamLogo />
-            </Link>
             {navLinks.map((link) => (
               <Link
                 key={link.href}
@@ -80,7 +77,8 @@ export function AppHeader() {
           </nav>
         </div>
 
-        <div className="flex items-center justify-end space-x-1">
+        {/* Right Section: Search */}
+        <div className="flex items-center justify-end">
             <Button variant="ghost" size="icon" asChild>
               <Link href="/search">
                 <Search className="h-4 w-4" />
