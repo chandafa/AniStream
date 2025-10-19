@@ -1,3 +1,34 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "1",
+      "description": "A placeholder image for a bookmarked anime.",
+      "imageUrl": "https://picsum.photos/seed/anime1/400/600",
+      "imageHint": "anime poster"
+    },
+    {
+      "id": "2",
+      "description": "A placeholder image for a bookmarked anime.",
+      "imageUrl": "https://picsum.photos/seed/anime2/400/600",
+      "imageHint": "anime poster"
+    },
+    {
+      id: "3",
+      "description": "A placeholder image for a bookmarked anime.",
+      "imageUrl": "https://picsum.photos/seed/anime3/400/600",
+      "imageHint": "anime poster"
+    },
+    {
+      "id": "4",
+      "description": "A placeholder image for a bookmarked anime.",
+      "imageUrl": "https://picsum.photos/seed/anime4/400/600",
+      "imageHint": "anime poster"
+    },
+    {
+      "id": "5",
+      "description": "A placeholder image for user avatar.",
+      "imageUrl": "https://picsum.photos/seed/avatar1/100/100",
+      "imageHint": "user avatar"
+    }
+  ]
 }
