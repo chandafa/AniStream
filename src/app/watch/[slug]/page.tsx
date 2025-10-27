@@ -15,7 +15,6 @@ import { useUser, useFirestore } from '@/firebase';
 import { addToHistory } from '@/lib/user-data';
 import { cleanSlug } from '@/lib/utils';
 import { EpisodeComments } from '@/components/anime/EpisodeComments';
-import { cn } from '@/lib/utils';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
     Accordion,
@@ -23,20 +22,7 @@ import {
     AccordionItem,
     AccordionTrigger,
   } from "@/components/ui/accordion"
-
-function extractAnimeSlug(otakudesuUrl: string): string | null {
-    try {
-        const url = new URL(otakudesuUrl);
-        const pathParts = url.pathname.split('/').filter(Boolean);
-        if (pathParts[0] === 'anime' && pathParts[1]) {
-            return pathParts[1];
-        }
-        return null;
-    } catch (e) {
-        console.error("Invalid URL for slug extraction", otakudesuUrl);
-        return null;
-    }
-}
+import axios from 'axios';
 
 export default function WatchPage() {
   const params = useParams();
@@ -62,22 +48,47 @@ export default function WatchPage() {
         if (result && result.stream_url) {
           setData(result);
           setCurrentStreamUrl(result.stream_url);
+          
           if (result.downloadLinks) {
               setDownloadLinks(result.downloadLinks)
           }
 
           const animeSlug = result.anime.slug ? cleanSlug(result.anime.slug) : null;
           if (user && firestore && animeSlug) {
-            // Add to history without waiting
             addToHistory(firestore, user.uid, animeSlug);
           }
         } else {
-          setError('No streaming servers found for this episode.');
-          toast({
-            variant: "destructive",
-            title: "Streaming Error",
-            description: "No streaming servers could be found.",
-          });
+            // Try fetching from mirror API as a fallback for older episodes maybe
+            try {
+                const mirrorRes = await axios.get(`/api/player/mirrors?query=${slug}`);
+                if (mirrorRes.data.mirrors && mirrorRes.data.mirrors.length > 0) {
+                    const transformedMirrors = mirrorRes.data.mirrors
+                        .filter((m: any) => m.mirrors.length > 0)
+                        .map((m: any) => ({
+                            quality: m.quality,
+                            links: m.mirrors.map((mirror: any) => ({
+                                provider: mirror.label,
+                                url: `https://otakudesu.cloud/v/${mirror.data_content}`,
+                                label: mirror.label,
+                                data_content: mirror.data_content,
+                            }))
+                        }));
+                    setDownloadLinks(transformedMirrors);
+                    // Set a default stream URL if possible from mirrors, or leave it null
+                    // For now, we focus on downloads/mirrors, streaming can be complex
+                }
+            } catch (mirrorError) {
+                console.error("Mirror fetch failed:", mirrorError);
+            }
+
+            if (!result?.stream_url && downloadLinks.length === 0) {
+                 setError('No streaming servers or download links found for this episode.');
+                 toast({
+                    variant: "destructive",
+                    title: "Not Found",
+                    description: "No content could be found for this episode.",
+                 });
+            }
         }
       } catch (e) {
         setError('Failed to load episode data. Please try again.');
@@ -110,11 +121,11 @@ export default function WatchPage() {
     );
   }
 
-  if (!data) {
+  if (!data && downloadLinks.length === 0) {
     notFound();
   }
   
-  const animeSlug = cleanSlug(data.anime.slug);
+  const animeSlug = data ? cleanSlug(data.anime.slug) : null;
 
   return (
     <div className="bg-background text-foreground">
@@ -131,7 +142,7 @@ export default function WatchPage() {
                 ></iframe>
                 ) : (
                 <div className="w-full h-full bg-card flex items-center justify-center">
-                    <p className="text-muted-foreground">Select a server to start watching.</p>
+                    <p className="text-muted-foreground">Select a server or download option to start watching.</p>
                 </div>
                 )}
             </div>
@@ -149,24 +160,26 @@ export default function WatchPage() {
             )}
             <div className="flex flex-col md:flex-row gap-2 justify-between md:items-center">
                 <h1 className="font-headline text-xl md:text-2xl font-bold">
-                    {data.episode || 'Watching Anime'}
+                    {data?.episode || 'Watching Anime'}
                 </h1>
-                <div className="flex gap-2 shrink-0">
-                    <Button variant="outline" size="sm" disabled={!data.has_previous_episode} asChild>
-                    <Link href={data.previous_episode ? `/watch/${data.previous_episode.slug}` : '#'}>
-                        <ChevronLeft className="h-4 w-4" /> Prev
-                    </Link>
-                    </Button>
-                    <Button variant="outline" size="sm" disabled={!data.has_next_episode} asChild>
-                    <Link href={data.next_episode ? `/watch/${data.next_episode.slug}` : '#'}>
-                        Next <ChevronRight className="h-4 w-4" />
-                    </Link>
-                    </Button>
-                </div>
+                {data && (
+                  <div className="flex gap-2 shrink-0">
+                      <Button variant="outline" size="sm" disabled={!data.has_previous_episode} asChild>
+                      <Link href={data.previous_episode ? `/watch/${data.previous_episode.slug}` : '#'}>
+                          <ChevronLeft className="h-4 w-4" /> Prev
+                      </Link>
+                      </Button>
+                      <Button variant="outline" size="sm" disabled={!data.has_next_episode} asChild>
+                      <Link href={data.next_episode ? `/watch/${data.next_episode.slug}` : '#'}>
+                          Next <ChevronRight className="h-4 w-4" />
+                      </Link>
+                      </Button>
+                  </div>
+                )}
             </div>
         </div>
         
-        {data.servers && data.servers.length > 1 && (
+        {data?.servers && data.servers.length > 1 && (
             <Card>
                 <CardHeader>
                     <CardTitle className="text-lg flex items-center gap-2">
@@ -193,7 +206,7 @@ export default function WatchPage() {
             <Card>
                 <CardHeader>
                     <CardTitle className="text-lg flex items-center gap-2">
-                        <Download className="w-5 h-5" /> Download Episode
+                        <Download className="w-5 h-5" /> Download / Mirrors
                     </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -204,9 +217,9 @@ export default function WatchPage() {
                                 <AccordionContent>
                                     <div className="flex flex-col items-start gap-2">
                                         {qualityGroup.links.map(link => (
-                                            <Button asChild variant="link" key={link.provider}>
+                                            <Button asChild variant="link" key={link.provider || link.label}>
                                                 <a href={link.url} target="_blank" rel="noopener noreferrer">
-                                                    {link.provider}
+                                                    {link.provider || link.label}
                                                 </a>
                                             </Button>
                                         ))}
@@ -254,5 +267,3 @@ function WatchPageSkeleton() {
         </div>
     );
   }
-
-    

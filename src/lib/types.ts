@@ -83,11 +83,14 @@ export interface StreamServer {
 export interface DownloadLink {
   provider: string;
   url: string;
+  label?: string;
+  data_content?: string | null;
 }
 
 export interface DownloadQuality {
   quality: string;
   links: DownloadLink[];
+  mirrors?: any[];
 }
 
 
