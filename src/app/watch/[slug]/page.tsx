@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -23,6 +24,7 @@ import {
     AccordionTrigger,
   } from "@/components/ui/accordion"
 import axios from 'axios';
+import { cn } from '@/lib/utils';
 
 export default function WatchPage() {
   const params = useParams();
@@ -36,6 +38,7 @@ export default function WatchPage() {
   const [error, setError] = useState<string | null>(null);
   const [currentStreamUrl, setCurrentStreamUrl] = useState<string | null>(null);
   const [downloadLinks, setDownloadLinks] = useState<DownloadQuality[]>([]);
+  const [activeQuality, setActiveQuality] = useState<string | null>(null);
 
   useEffect(() => {
     if (!slug) return;
@@ -51,37 +54,38 @@ export default function WatchPage() {
                 setCurrentStreamUrl(result.stream_url);
             }
           
-          if (result.downloadLinks) {
-              setDownloadLinks(result.downloadLinks)
-          }
+            let finalDownloadLinks = result.downloadLinks || [];
 
-          const animeSlug = result.anime.slug ? cleanSlug(result.anime.slug) : null;
-          if (user && firestore && animeSlug) {
-            addToHistory(firestore, user.uid, animeSlug);
-          }
-        } else {
-            // Try fetching from mirror API as a fallback for older episodes maybe
-            try {
-                const mirrorRes = await axios.get(`/api/player/mirrors?query=${slug}`);
-                if (mirrorRes.data.mirrors && mirrorRes.data.mirrors.length > 0) {
-                    const transformedMirrors: DownloadQuality[] = mirrorRes.data.mirrors
-                        .filter((m: any) => m.mirrors.length > 0)
-                        .map((m: any) => ({
-                            quality: m.quality,
-                            links: m.mirrors.map((mirror: any) => ({
-                                provider: mirror.label,
-                                url: `https://otakudesu.cloud/v/${mirror.data_content}`,
-                                label: mirror.label,
-                                data_content: mirror.data_content,
-                            }))
-                        }));
-                    setDownloadLinks(transformedMirrors);
+            // Fallback to mirror API if initial data has no download links
+            if (finalDownloadLinks.length === 0) {
+                try {
+                    const mirrorRes = await axios.get(`/api/player/mirrors?query=${slug}`);
+                    if (mirrorRes.data.mirrors && mirrorRes.data.mirrors.length > 0) {
+                        const transformedMirrors: DownloadQuality[] = mirrorRes.data.mirrors
+                            .filter((m: any) => m.mirrors.length > 0)
+                            .map((m: any) => ({
+                                quality: m.quality,
+                                links: m.mirrors.map((mirror: any) => ({
+                                    provider: mirror.label,
+                                    url: `https://otakudesu.cloud/v/${mirror.data_content}`,
+                                    label: mirror.label,
+                                    data_content: mirror.data_content,
+                                }))
+                            }));
+                        finalDownloadLinks = transformedMirrors;
+                    }
+                } catch (mirrorError) {
+                    console.error("Mirror fetch failed:", mirrorError);
                 }
-            } catch (mirrorError) {
-                console.error("Mirror fetch failed:", mirrorError);
             }
 
-            if (!result?.stream_url && downloadLinks.length === 0) {
+            setDownloadLinks(finalDownloadLinks);
+
+            if(finalDownloadLinks.length > 0) {
+                setActiveQuality(finalDownloadLinks[0].quality);
+            }
+
+            if (!result.stream_url && finalDownloadLinks.length === 0) {
                  setError('No streaming servers or download links found for this episode.');
                  toast({
                     variant: "destructive",
@@ -89,6 +93,18 @@ export default function WatchPage() {
                     description: "No content could be found for this episode.",
                  });
             }
+
+          const animeSlug = result.anime.slug ? cleanSlug(result.anime.slug) : null;
+          if (user && firestore && animeSlug) {
+            addToHistory(firestore, user.uid, animeSlug);
+          }
+        } else {
+             setError('No streaming servers or download links found for this episode.');
+             toast({
+                variant: "destructive",
+                title: "Not Found",
+                description: "No content could be found for this episode.",
+             });
         }
       } catch (e) {
         setError('Failed to load episode data. Please try again.');
@@ -103,7 +119,7 @@ export default function WatchPage() {
     };
 
     fetchData();
-  }, [slug, toast, user, firestore, downloadLinks.length]);
+  }, [slug, toast, user, firestore]);
 
   if (loading) {
     return <WatchPageSkeleton />;
@@ -129,7 +145,7 @@ export default function WatchPage() {
 
   return (
     <div className="bg-background text-foreground">
-      <div className="relative w-full bg-black video-vignette">
+      <div className="relative w-full bg-black">
         <div className="mx-auto max-w-5xl">
             <div className="aspect-video w-full">
                 {currentStreamUrl ? (
@@ -148,6 +164,39 @@ export default function WatchPage() {
             </div>
         </div>
       </div>
+
+      {downloadLinks && downloadLinks.length > 0 && (
+          <div className='bg-background/80 backdrop-blur-lg border-b border-t'>
+            <div className='container py-2 flex flex-wrap gap-2'>
+              {downloadLinks.map((qualityGroup, index) => (
+                <Button 
+                    key={qualityGroup.quality}
+                    onClick={() => setActiveQuality(qualityGroup.quality)}
+                    className={cn(
+                        'flex-1 basis-1/4 md:flex-initial',
+                        activeQuality === qualityGroup.quality ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
+                    )}
+                >
+                    Mirror {qualityGroup.quality}
+                </Button>
+              ))}
+            </div>
+          </div>
+      )}
+
+      {activeQuality && (
+          <div className='container py-4'>
+              <div className='flex flex-wrap gap-2'>
+                {downloadLinks.find(q => q.quality === activeQuality)?.links.map((link, index) => (
+                    <Button asChild variant="outline" key={`${link.provider}-${index}`}>
+                        <a href={link.url} target="_blank" rel="noopener noreferrer">
+                            {link.provider}
+                        </a>
+                    </Button>
+                ))}
+              </div>
+          </div>
+      )}
 
       <div className="container py-4 space-y-4">
         <div>
@@ -202,36 +251,6 @@ export default function WatchPage() {
             </Card>
         )}
 
-        {downloadLinks && downloadLinks.length > 0 && (
-            <Card>
-                <CardHeader>
-                    <CardTitle className="text-lg flex items-center gap-2">
-                        <Download className="w-5 h-5" /> Download / Mirrors
-                    </CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <Accordion type="single" collapsible className="w-full">
-                        {downloadLinks.map((qualityGroup) => (
-                            <AccordionItem value={qualityGroup.quality} key={qualityGroup.quality}>
-                                <AccordionTrigger>{qualityGroup.quality}</AccordionTrigger>
-                                <AccordionContent>
-                                    <div className="flex flex-col items-start gap-2">
-                                        {qualityGroup.links.map((link, index) => (
-                                            <Button asChild variant="link" key={`${link.provider}-${index}`}>
-                                                <a href={link.url} target="_blank" rel="noopener noreferrer">
-                                                    {link.provider}
-                                                </a>
-                                            </Button>
-                                        ))}
-                                    </div>
-                                </AccordionContent>
-                            </AccordionItem>
-                        ))}
-                    </Accordion>
-                </CardContent>
-            </Card>
-        )}
-
         <div className="py-6">
             <EpisodeComments episodeId={slug} />
         </div>
@@ -246,6 +265,13 @@ function WatchPageSkeleton() {
             <div className="bg-black">
                 <div className="mx-auto max-w-5xl">
                     <Skeleton className="aspect-video w-full" />
+                </div>
+            </div>
+             <div className='bg-background/80 backdrop-blur-lg border-b border-t'>
+                <div className='container py-2 flex flex-wrap gap-2'>
+                    <Skeleton className="h-9 w-24" />
+                    <Skeleton className="h-9 w-24" />
+                    <Skeleton className="h-9 w-24" />
                 </div>
             </div>
             <div className="container py-4 space-y-4">
@@ -267,5 +293,3 @@ function WatchPageSkeleton() {
         </div>
     );
   }
-
-    
