@@ -111,8 +111,8 @@ export interface EpisodeStreamData {
   servers?: StreamServer[];
   downloadLinks?: DownloadQuality[];
   download_urls?: {
-    mp4?: { resolution: string; urls: { provider: string; url: string }[] }[];
-    mkv?: { resolution: string; urls: { provider: string; url: string }[] }[];
+    mp4?: { resolution: string; urls: { provider: string; url: string; data_content?: string | null; }[] }[];
+    mkv?: { resolution: string; urls: { provider: string; url: string; data_content?: string | null; }[] }[];
   };
 }
 
@@ -172,3 +172,5 @@ export interface Comment {
     text: string;
     timestamp: Timestamp;
 }
+
+    

@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -10,7 +9,7 @@ import type { EpisodeStreamData, DownloadQuality, DownloadLink } from '@/lib/typ
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { AlertTriangle, ArrowLeft, ChevronLeft, ChevronRight, Download, Server, Monitor } from 'lucide-react';
+import { AlertTriangle, ArrowLeft, ChevronLeft, ChevronRight, Download, Server, Monitor, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useUser, useFirestore } from '@/firebase';
 import { addToHistory } from '@/lib/user-data';
@@ -33,6 +32,9 @@ export default function WatchPage() {
   const [currentStreamUrl, setCurrentStreamUrl] = useState<string | null>(null);
   const [downloadLinks, setDownloadLinks] = useState<DownloadQuality[]>([]);
   const [activeQuality, setActiveQuality] = useState<string | null>(null);
+  const [loadingPlayer, setLoadingPlayer] = useState(false);
+  const [activeMirror, setActiveMirror] = useState<string | null>(null);
+
 
   useEffect(() => {
     if (!slug) return;
@@ -50,26 +52,29 @@ export default function WatchPage() {
           
             let finalDownloadLinks: DownloadQuality[] = [];
 
-            if (result.download_urls) {
-                const formats = ['mp4', 'mkv'];
-                formats.forEach(format => {
-                    if (result.download_urls![format as 'mp4' | 'mkv']) {
-                        result.download_urls![format as 'mp4' | 'mkv']!.forEach(item => {
-                            let qualityKey = `${item.resolution} (${format.toUpperCase()})`;
-                            let qualityGroup = finalDownloadLinks.find(q => q.quality === qualityKey);
-                            if (!qualityGroup) {
-                                qualityGroup = { quality: qualityKey, links: [] };
-                                finalDownloadLinks.push(qualityGroup);
-                            }
-                            qualityGroup.links.push(...item.urls);
-                        });
-                    }
-                });
-            } else if (result.downloadLinks) {
+            // Otakudesu API response
+            if (result.download_urls?.mp4 || result.download_urls?.mkv) {
+              const formats = ['mp4', 'mkv'];
+              formats.forEach(format => {
+                  if (result.download_urls![format as 'mp4' | 'mkv']) {
+                      result.download_urls![format as 'mp4' | 'mkv']!.forEach(item => {
+                          let qualityKey = `${item.resolution} (${format.toUpperCase()})`;
+                          let qualityGroup = finalDownloadLinks.find(q => q.quality === qualityKey);
+                          if (!qualityGroup) {
+                              qualityGroup = { quality: qualityKey, links: [] };
+                              finalDownloadLinks.push(qualityGroup);
+                          }
+                          qualityGroup.links.push(...item.urls);
+                      });
+                  }
+              });
+            }
+             // Donghua API response
+            else if (result.downloadLinks) {
                 finalDownloadLinks = result.downloadLinks;
             }
 
-            // Fallback to mirror API if initial data has no download links
+            // Fallback to mirror scraper API if initial data has no download links
             if (finalDownloadLinks.length === 0) {
                 try {
                     const mirrorRes = await axios.get(`/api/player/mirrors?query=${slug}`);
@@ -80,7 +85,7 @@ export default function WatchPage() {
                                 quality: m.quality,
                                 links: m.mirrors.map((mirror: any) => ({
                                     provider: mirror.label,
-                                    url: `https://otakudesu.cloud/v/${mirror.data_content}`,
+                                    url: `#`, // URL is handled by handlePlay
                                     label: mirror.label,
                                     data_content: mirror.data_content,
                                 }))
@@ -94,8 +99,9 @@ export default function WatchPage() {
 
             setDownloadLinks(finalDownloadLinks);
 
-            if(finalDownloadLinks.length > 0) {
-                setActiveQuality(finalDownloadLinks[0].quality);
+            if(finalDownloadLinks.length > 0 && finalDownloadLinks[0].links.length > 0) {
+                const firstGroup = finalDownloadLinks[0];
+                setActiveQuality(firstGroup.quality);
             }
 
             if (!result.stream_url && finalDownloadLinks.length === 0) {
@@ -136,6 +142,36 @@ export default function WatchPage() {
   
   const handleQualityClick = (quality: string) => {
     setActiveQuality(prev => (prev === quality ? null : quality));
+  };
+  
+  const handlePlay = async (mirror: DownloadLink) => {
+    if (loadingPlayer) return;
+
+    if (!mirror.data_content) {
+        // If it's a direct URL, just set it
+        if(mirror.url.startsWith('http')) {
+            setCurrentStreamUrl(mirror.url);
+        } else {
+            toast({ variant: 'destructive', title: 'Error', description: 'No data content available for this mirror.' });
+        }
+        return;
+    }
+    
+    try {
+      setLoadingPlayer(true);
+      setActiveMirror(mirror.label || mirror.provider);
+      const res = await axios.get(`/api/player/video?query=${encodeURIComponent(mirror.data_content)}`);
+      if(res.data.player) {
+        setCurrentStreamUrl(res.data.player);
+      } else {
+        toast({ variant: 'destructive', title: 'Error', description: 'Could not load video from this source.' });
+      }
+    } catch (err) {
+      console.error(err);
+      toast({ variant: 'destructive', title: 'Error', description: 'Failed to load player.' });
+    } finally {
+      setLoadingPlayer(false);
+    }
   };
 
   const qualityColors: { [key: string]: string } = {
@@ -199,16 +235,16 @@ export default function WatchPage() {
              <div className="bg-gray-800/70 p-2 flex flex-wrap justify-center gap-2">
                 {downloadLinks.map((qualityGroup) => (
                     <Button
-                    key={qualityGroup.quality}
-                    onClick={() => handleQualityClick(qualityGroup.quality)}
-                    className={cn(
-                        'text-white',
-                        getQualityColor(qualityGroup.quality),
-                        activeQuality === qualityGroup.quality ? 'ring-2 ring-offset-2 ring-offset-gray-800 ring-white' : ''
-                    )}
-                    >
-                    <Monitor className="mr-2 h-4 w-4" />
-                    Mirror {qualityGroup.quality.split(' ')[0]}
+                        key={qualityGroup.quality}
+                        onClick={() => handleQualityClick(qualityGroup.quality)}
+                        className={cn(
+                            'text-white',
+                            getQualityColor(qualityGroup.quality),
+                            activeQuality === qualityGroup.quality ? 'ring-2 ring-offset-2 ring-offset-gray-800 ring-white' : ''
+                        )}
+                        >
+                        <Monitor className="mr-2 h-4 w-4" />
+                        Mirror {qualityGroup.quality.split(' ')[0]}
                     </Button>
                 ))}
              </div>
@@ -216,18 +252,31 @@ export default function WatchPage() {
       </div>
 
       <div className="container py-4 space-y-4">
-        {/* Active Mirror's Download Links */}
+        {/* Active Mirror's Provider/Download Links */}
         {activeQuality && (
             <div className='my-4 p-4 bg-card rounded-lg'>
-                <h3 className='text-lg font-bold mb-3 text-center'>Download Links for {activeQuality}</h3>
+                <h3 className='text-lg font-bold mb-3 text-center'>Servers for {activeQuality}</h3>
                 <div className='flex flex-wrap justify-center items-center gap-x-4 gap-y-2'>
-                    {downloadLinks.find(q => q.quality === activeQuality)?.links.map((link, index) => (
-                         <Button asChild variant="link" className='p-0 h-auto' key={`${link.provider}-${index}`}>
-                            <a href={link.url} target="_blank" rel="noopener noreferrer">
-                                {link.provider || link.label}
-                            </a>
+                    {downloadLinks.find(q => q.quality === activeQuality)?.links.map((link, index) => {
+                      const isActive = activeMirror === (link.label || link.provider);
+                      const isLoading = loadingPlayer && isActive;
+                      return (
+                        <Button
+                          key={`${link.provider}-${index}`}
+                          onClick={() => handlePlay(link)}
+                          disabled={isLoading}
+                          variant="outline"
+                          className={cn(isActive && "bg-primary text-primary-foreground")}
+                        >
+                          {isLoading ? (
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          ) : (
+                            <Server className="mr-2 h-4 w-4" />
+                          )}
+                          {link.provider || link.label}
                         </Button>
-                    ))}
+                      )
+                    })}
                 </div>
             </div>
         )}
@@ -265,7 +314,7 @@ export default function WatchPage() {
             <Card>
                 <CardHeader>
                     <CardTitle className="text-lg flex items-center gap-2">
-                        <Server className="w-5 h-5" /> Streaming Servers
+                        <Server className="w-5 h-5" /> Backup Streaming Servers
                     </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -274,7 +323,7 @@ export default function WatchPage() {
                             <Button
                                 key={server.name}
                                 variant={currentStreamUrl === server.url ? 'default' : 'outline'}
-                                onClick={() => setCurrentStreamUrl(server.url)}
+                                onClick={() => handlePlay(server)}
                             >
                                 {server.name}
                             </Button>
