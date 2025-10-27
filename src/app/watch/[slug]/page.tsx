@@ -66,7 +66,7 @@ export default function WatchPage() {
               setDownloadLinks(result.downloadLinks)
           }
 
-          const animeSlug = extractAnimeSlug(result.anime.slug);
+          const animeSlug = result.anime.slug ? cleanSlug(result.anime.slug) : null;
           if (user && firestore && animeSlug) {
             // Add to history without waiting
             addToHistory(firestore, user.uid, animeSlug);
@@ -254,3 +254,5 @@ function WatchPageSkeleton() {
         </div>
     );
   }
+
+    
