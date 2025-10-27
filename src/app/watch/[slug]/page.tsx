@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { notFound, useParams } from 'next/navigation';
 import { getEpisodeStream } from '@/lib/api';
-import type { EpisodeStreamData } from '@/lib/types';
+import type { EpisodeStreamData, DownloadQuality } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -49,6 +49,7 @@ export default function WatchPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentStreamUrl, setCurrentStreamUrl] = useState<string | null>(null);
+  const [downloadLinks, setDownloadLinks] = useState<DownloadQuality[]>([]);
 
   useEffect(() => {
     if (!slug) return;
@@ -61,6 +62,10 @@ export default function WatchPage() {
         if (result && result.stream_url) {
           setData(result);
           setCurrentStreamUrl(result.stream_url);
+          if (result.downloadLinks) {
+              setDownloadLinks(result.downloadLinks)
+          }
+
           const animeSlug = extractAnimeSlug(result.anime.slug);
           if (user && firestore && animeSlug) {
             // Add to history without waiting
@@ -184,7 +189,7 @@ export default function WatchPage() {
             </Card>
         )}
 
-        {data.downloadLinks && data.downloadLinks.length > 0 && (
+        {downloadLinks && downloadLinks.length > 0 && (
             <Card>
                 <CardHeader>
                     <CardTitle className="text-lg flex items-center gap-2">
@@ -193,7 +198,7 @@ export default function WatchPage() {
                 </CardHeader>
                 <CardContent>
                     <Accordion type="single" collapsible className="w-full">
-                        {data.downloadLinks.map((qualityGroup) => (
+                        {downloadLinks.map((qualityGroup) => (
                             <AccordionItem value={qualityGroup.quality} key={qualityGroup.quality}>
                                 <AccordionTrigger>{qualityGroup.quality}</AccordionTrigger>
                                 <AccordionContent>
