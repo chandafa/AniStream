@@ -6,23 +6,17 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { notFound, useParams } from 'next/navigation';
 import { getEpisodeStream } from '@/lib/api';
-import type { EpisodeStreamData, DownloadQuality } from '@/lib/types';
+import type { EpisodeStreamData, DownloadQuality, DownloadLink } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { AlertTriangle, ArrowLeft, ChevronLeft, ChevronRight, Download, Server } from 'lucide-react';
+import { AlertTriangle, ArrowLeft, ChevronLeft, ChevronRight, Download, Server, Monitor } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useUser, useFirestore } from '@/firebase';
 import { addToHistory } from '@/lib/user-data';
 import { cleanSlug } from '@/lib/utils';
 import { EpisodeComments } from '@/components/anime/EpisodeComments';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-    Accordion,
-    AccordionContent,
-    AccordionItem,
-    AccordionTrigger,
-  } from "@/components/ui/accordion"
 import axios from 'axios';
 import { cn } from '@/lib/utils';
 
@@ -54,7 +48,26 @@ export default function WatchPage() {
                 setCurrentStreamUrl(result.stream_url);
             }
           
-            let finalDownloadLinks = result.downloadLinks || [];
+            let finalDownloadLinks: DownloadQuality[] = [];
+
+            if (result.download_urls) {
+                const formats = ['mp4', 'mkv'];
+                formats.forEach(format => {
+                    if (result.download_urls![format as 'mp4' | 'mkv']) {
+                        result.download_urls![format as 'mp4' | 'mkv']!.forEach(item => {
+                            let qualityKey = `${item.resolution} (${format.toUpperCase()})`;
+                            let qualityGroup = finalDownloadLinks.find(q => q.quality === qualityKey);
+                            if (!qualityGroup) {
+                                qualityGroup = { quality: qualityKey, links: [] };
+                                finalDownloadLinks.push(qualityGroup);
+                            }
+                            qualityGroup.links.push(...item.urls);
+                        });
+                    }
+                });
+            } else if (result.downloadLinks) {
+                finalDownloadLinks = result.downloadLinks;
+            }
 
             // Fallback to mirror API if initial data has no download links
             if (finalDownloadLinks.length === 0) {
@@ -120,6 +133,26 @@ export default function WatchPage() {
 
     fetchData();
   }, [slug, toast, user, firestore]);
+  
+  const handleQualityClick = (quality: string) => {
+    setActiveQuality(prev => (prev === quality ? null : quality));
+  };
+
+  const qualityColors: { [key: string]: string } = {
+    "360": "bg-gray-600 hover:bg-gray-700",
+    "480": "bg-blue-600 hover:bg-blue-700",
+    "720": "bg-red-600 hover:bg-red-700",
+    "1080": "bg-green-600 hover:bg-green-700",
+  };
+
+  const getQualityColor = (quality: string) => {
+    const resolution = quality.match(/\d+/)?.[0];
+    if (resolution && qualityColors[resolution]) {
+        return qualityColors[resolution];
+    }
+    return "bg-gray-500 hover:bg-gray-600";
+  }
+
 
   if (loading) {
     return <WatchPageSkeleton />;
@@ -158,14 +191,47 @@ export default function WatchPage() {
                 ></iframe>
                 ) : (
                 <div className="w-full h-full bg-card flex items-center justify-center">
-                    <p className="text-muted-foreground">Select a server or download option to start watching.</p>
+                    <p className="text-muted-foreground">Select a server to start watching.</p>
                 </div>
                 )}
             </div>
+             {/* Mirror buttons container */}
+             <div className="bg-gray-800/70 p-2 flex flex-wrap justify-center gap-2">
+                {downloadLinks.map((qualityGroup) => (
+                    <Button
+                    key={qualityGroup.quality}
+                    onClick={() => handleQualityClick(qualityGroup.quality)}
+                    className={cn(
+                        'text-white',
+                        getQualityColor(qualityGroup.quality),
+                        activeQuality === qualityGroup.quality ? 'ring-2 ring-offset-2 ring-offset-gray-800 ring-white' : ''
+                    )}
+                    >
+                    <Monitor className="mr-2 h-4 w-4" />
+                    Mirror {qualityGroup.quality.split(' ')[0]}
+                    </Button>
+                ))}
+             </div>
         </div>
       </div>
 
       <div className="container py-4 space-y-4">
+        {/* Active Mirror's Download Links */}
+        {activeQuality && (
+            <div className='my-4 p-4 bg-card rounded-lg'>
+                <h3 className='text-lg font-bold mb-3 text-center'>Download Links for {activeQuality}</h3>
+                <div className='flex flex-wrap justify-center items-center gap-x-4 gap-y-2'>
+                    {downloadLinks.find(q => q.quality === activeQuality)?.links.map((link, index) => (
+                         <Button asChild variant="link" className='p-0 h-auto' key={`${link.provider}-${index}`}>
+                            <a href={link.url} target="_blank" rel="noopener noreferrer">
+                                {link.provider || link.label}
+                            </a>
+                        </Button>
+                    ))}
+                </div>
+            </div>
+        )}
+
         <div>
             {animeSlug && (
                 <Button variant="ghost" asChild className="mb-2 -ml-4">
@@ -218,35 +284,6 @@ export default function WatchPage() {
             </Card>
         )}
 
-        {downloadLinks && downloadLinks.length > 0 && (
-            <Card>
-                <CardHeader>
-                    <CardTitle className="text-lg flex items-center gap-2">
-                        <Download className="w-5 h-5" /> Download / Mirrors
-                    </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-2">
-                    {downloadLinks.map((qualityGroup) => (
-                        <div key={qualityGroup.quality} className='bg-muted/50 p-3 rounded-lg'>
-                            <h3 className='text-center font-bold bg-muted p-2 rounded-md mb-2'>{qualityGroup.quality}</h3>
-                            <div className='flex flex-wrap justify-center items-center gap-x-4 gap-y-2'>
-                                {qualityGroup.links.map((link, index) => (
-                                    <>
-                                        <Button asChild variant="link" className='p-0 h-auto' key={`${link.provider}-${index}`}>
-                                            <a href={link.url} target="_blank" rel="noopener noreferrer">
-                                                {link.provider}
-                                            </a>
-                                        </Button>
-                                        {index < qualityGroup.links.length - 1 && <span className="text-muted-foreground/50">|</span>}
-                                    </>
-                                ))}
-                            </div>
-                        </div>
-                    ))}
-                </CardContent>
-            </Card>
-        )}
-
         <div className="py-6">
             <EpisodeComments episodeId={slug} />
         </div>
@@ -261,16 +298,14 @@ function WatchPageSkeleton() {
             <div className="bg-black">
                 <div className="mx-auto max-w-5xl">
                     <Skeleton className="aspect-video w-full" />
+                     <div className="bg-gray-800/70 p-2 flex flex-wrap justify-center gap-2">
+                        <Skeleton className="h-10 w-32" />
+                        <Skeleton className="h-10 w-32" />
+                        <Skeleton className="h-10 w-32" />
+                     </div>
                 </div>
             </div>
-             <div className='bg-background/80 backdrop-blur-lg border-b border-t'>
-                <div className='container py-2 flex flex-wrap gap-2'>
-                    <Skeleton className="h-9 w-24" />
-                    <Skeleton className="h-9 w-24" />
-                    <Skeleton className="h-9 w-24" />
-                </div>
-            </div>
-            <div className="container py-4 space-y-4">
+             <div className='container py-4 space-y-4'>
                 <Skeleton className="h-6 w-48" />
                 <div className="flex flex-col md:flex-row gap-4 justify-between">
                     <Skeleton className="h-8 w-3/4" />
@@ -289,3 +324,5 @@ function WatchPageSkeleton() {
         </div>
     );
   }
+
+    
