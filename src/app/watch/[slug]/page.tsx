@@ -165,39 +165,6 @@ export default function WatchPage() {
         </div>
       </div>
 
-      {downloadLinks && downloadLinks.length > 0 && (
-          <div className='bg-background/80 backdrop-blur-lg border-b border-t'>
-            <div className='container py-2 flex flex-wrap gap-2'>
-              {downloadLinks.map((qualityGroup, index) => (
-                <Button 
-                    key={qualityGroup.quality}
-                    onClick={() => setActiveQuality(qualityGroup.quality)}
-                    className={cn(
-                        'flex-1 basis-1/4 md:flex-initial',
-                        activeQuality === qualityGroup.quality ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
-                    )}
-                >
-                    Mirror {qualityGroup.quality}
-                </Button>
-              ))}
-            </div>
-          </div>
-      )}
-
-      {activeQuality && (
-          <div className='container py-4'>
-              <div className='flex flex-wrap gap-2'>
-                {downloadLinks.find(q => q.quality === activeQuality)?.links.map((link, index) => (
-                    <Button asChild variant="outline" key={`${link.provider}-${index}`}>
-                        <a href={link.url} target="_blank" rel="noopener noreferrer">
-                            {link.provider}
-                        </a>
-                    </Button>
-                ))}
-              </div>
-          </div>
-      )}
-
       <div className="container py-4 space-y-4">
         <div>
             {animeSlug && (
@@ -247,6 +214,35 @@ export default function WatchPage() {
                             </Button>
                         ))}
                     </div>
+                </CardContent>
+            </Card>
+        )}
+
+        {downloadLinks && downloadLinks.length > 0 && (
+            <Card>
+                <CardHeader>
+                    <CardTitle className="text-lg flex items-center gap-2">
+                        <Download className="w-5 h-5" /> Download / Mirrors
+                    </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                    {downloadLinks.map((qualityGroup) => (
+                        <div key={qualityGroup.quality} className='bg-muted/50 p-3 rounded-lg'>
+                            <h3 className='text-center font-bold bg-muted p-2 rounded-md mb-2'>{qualityGroup.quality}</h3>
+                            <div className='flex flex-wrap justify-center items-center gap-x-4 gap-y-2'>
+                                {qualityGroup.links.map((link, index) => (
+                                    <>
+                                        <Button asChild variant="link" className='p-0 h-auto' key={`${link.provider}-${index}`}>
+                                            <a href={link.url} target="_blank" rel="noopener noreferrer">
+                                                {link.provider}
+                                            </a>
+                                        </Button>
+                                        {index < qualityGroup.links.length - 1 && <span className="text-muted-foreground/50">|</span>}
+                                    </>
+                                ))}
+                            </div>
+                        </div>
+                    ))}
                 </CardContent>
             </Card>
         )}
