@@ -45,9 +45,11 @@ export default function WatchPage() {
       setError(null);
       try {
         const result = await getEpisodeStream(slug);
-        if (result && result.stream_url) {
-          setData(result);
-          setCurrentStreamUrl(result.stream_url);
+        if (result) {
+            setData(result);
+            if (result.stream_url) {
+                setCurrentStreamUrl(result.stream_url);
+            }
           
           if (result.downloadLinks) {
               setDownloadLinks(result.downloadLinks)
@@ -265,3 +267,5 @@ function WatchPageSkeleton() {
         </div>
     );
   }
+
+    
