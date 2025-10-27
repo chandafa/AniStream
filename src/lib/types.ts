@@ -110,6 +110,10 @@ export interface EpisodeStreamData {
   stream_url: string;
   servers?: StreamServer[];
   downloadLinks?: DownloadQuality[];
+  download_urls?: {
+    mp4?: { resolution: string; urls: { provider: string; url: string }[] }[];
+    mkv?: { resolution: string; urls: { provider: string; url: string }[] }[];
+  };
 }
 
 export interface DonghuaEpisodeStreamData {

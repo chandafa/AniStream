@@ -2,6 +2,7 @@
 
 
 
+
 import {
   Anime,
   AnimeDetail,
@@ -132,10 +133,10 @@ async function getDonghuaEpisodeStream(slug: string): Promise<EpisodeStreamData 
         anime: {
             slug: animeSlug
         },
-        has_next_episode: !!data.navigation.next_episode,
-        next_episode: data.navigation.next_episode ? { slug: data.navigation.next_episode.slug } : null,
-        has_previous_episode: !!data.navigation.previous_episode,
-        previous_episode: data.navigation.previous_episode ? { slug: data.navigation.previous_episode.slug } : null,
+        has_next_episode: !!data.navigation?.next_episode,
+        next_episode: data.navigation?.next_episode ? { slug: data.navigation.next_episode.slug } : null,
+        has_previous_episode: !!data.navigation?.previous_episode,
+        previous_episode: data.navigation?.previous_episode ? { slug: data.navigation.previous_episode.slug } : null,
     };
 }
 
@@ -172,6 +173,23 @@ export async function getEpisodeStream(slug: string): Promise<EpisodeStreamData 
       // Standard API might not provide a list of servers, so we create one from the main stream_url
       if (!animeData.data.servers) {
         animeData.data.servers = [{ name: 'Default', url: animeData.data.stream_url }];
+      }
+      if (animeData.data.download_urls) {
+        const downloadLinks: DownloadQuality[] = [];
+        const formats = ['mp4', 'mkv'];
+        formats.forEach(format => {
+            if (animeData.data.download_urls![format as 'mp4' | 'mkv']) {
+                animeData.data.download_urls![format as 'mp4' | 'mkv']!.forEach(item => {
+                    let qualityGroup = downloadLinks.find(q => q.quality === `${item.resolution} (${format.toUpperCase()})`);
+                    if (!qualityGroup) {
+                        qualityGroup = { quality: `${item.resolution} (${format.toUpperCase()})`, links: [] };
+                        downloadLinks.push(qualityGroup);
+                    }
+                    qualityGroup.links.push(...item.urls);
+                });
+            }
+        });
+        animeData.data.downloadLinks = downloadLinks;
       }
       return animeData.data;
   }

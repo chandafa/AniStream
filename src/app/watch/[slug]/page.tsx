@@ -62,7 +62,7 @@ export default function WatchPage() {
             try {
                 const mirrorRes = await axios.get(`/api/player/mirrors?query=${slug}`);
                 if (mirrorRes.data.mirrors && mirrorRes.data.mirrors.length > 0) {
-                    const transformedMirrors = mirrorRes.data.mirrors
+                    const transformedMirrors: DownloadQuality[] = mirrorRes.data.mirrors
                         .filter((m: any) => m.mirrors.length > 0)
                         .map((m: any) => ({
                             quality: m.quality,
@@ -74,8 +74,6 @@ export default function WatchPage() {
                             }))
                         }));
                     setDownloadLinks(transformedMirrors);
-                    // Set a default stream URL if possible from mirrors, or leave it null
-                    // For now, we focus on downloads/mirrors, streaming can be complex
                 }
             } catch (mirrorError) {
                 console.error("Mirror fetch failed:", mirrorError);
@@ -103,7 +101,7 @@ export default function WatchPage() {
     };
 
     fetchData();
-  }, [slug, toast, user, firestore]);
+  }, [slug, toast, user, firestore, downloadLinks.length]);
 
   if (loading) {
     return <WatchPageSkeleton />;
@@ -216,10 +214,10 @@ export default function WatchPage() {
                                 <AccordionTrigger>{qualityGroup.quality}</AccordionTrigger>
                                 <AccordionContent>
                                     <div className="flex flex-col items-start gap-2">
-                                        {qualityGroup.links.map(link => (
-                                            <Button asChild variant="link" key={link.provider || link.label}>
+                                        {qualityGroup.links.map((link, index) => (
+                                            <Button asChild variant="link" key={`${link.provider}-${index}`}>
                                                 <a href={link.url} target="_blank" rel="noopener noreferrer">
-                                                    {link.provider || link.label}
+                                                    {link.provider}
                                                 </a>
                                             </Button>
                                         ))}
