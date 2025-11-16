@@ -10,6 +10,7 @@ import { HomeHero } from '@/components/home/HomeHero';
 import { DonghuaList } from '@/components/home/DonghuaList';
 import { ContinueWatching } from '@/components/home/ContinueWatching';
 import { ContinueWatchingSkeleton } from '@/components/home/ContinueWatching';
+import { ViewingHistory, ViewingHistorySkeleton } from '@/components/home/ViewingHistory';
 
 const staticCarouselData: Anime[] = [
     {
@@ -58,6 +59,10 @@ async function HomeContent() {
         {homeData.latest_episodes && homeData.latest_episodes.length > 0 && (
           <AnimeList title="New Release" animes={homeData.latest_episodes} />
         )}
+
+        <Suspense fallback={<ViewingHistorySkeleton />}>
+            <ViewingHistory />
+        </Suspense>
 
         {homeData.ongoing_anime && homeData.ongoing_anime.length > 0 && (
           <OngoingAnimeList initialAnimes={homeData.ongoing_anime} />
@@ -119,5 +124,3 @@ export default function Home() {
     </Suspense>
   );
 }
-
-    
