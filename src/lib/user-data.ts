@@ -1,6 +1,5 @@
 
-
-import { doc, getDoc, updateDoc, setDoc, arrayUnion, arrayRemove, Firestore, increment, addDoc, collection, serverTimestamp } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, setDoc, arrayUnion, arrayRemove, Firestore, increment, addDoc, collection, serverTimestamp, Timestamp } from 'firebase/firestore';
 import type { HistoryItem } from './types';
 
 const XP_PER_WATCH = 10;
@@ -11,7 +10,7 @@ async function ensureUserDoc(firestore: Firestore, userId: string) {
     const userDocRef = doc(firestore, 'users', userId);
     const userDoc = await getDoc(userDocRef);
     if (!userDoc.exists()) {
-        await setDoc(userDocRef, { bookmarks: [], history: [], xp: 0, level: 1 });
+        await setDoc(userDocRef, { bookmarks: [], history: [], xp: 0, level: 1, registrationDate: serverTimestamp() });
     }
     return userDocRef;
 }
@@ -58,29 +57,38 @@ export const addToHistory = async (
     episodeSlug: string
 ) => {
     const userDocRef = await ensureUserDoc(firestore, userId);
-    const userDoc = await getDoc(userDocRef);
-    const userData = userDoc.data();
+    const userDocSnap = await getDoc(userDocRef);
+    const userData = userDocSnap.data();
     
     const history: HistoryItem[] = userData?.history ?? [];
 
-    // Remove existing entry for the same anime series
-    const updatedHistory = history.filter(item => item.animeSlug !== animeSlug);
+    // Check if the exact same episode is already the most recent item in history.
+    // This prevents adding XP for refreshing the same page.
+    const lastHistoryItem = history.length > 0 ? history[history.length - 1] : null;
+    if (lastHistoryItem && lastHistoryItem.episodeSlug === episodeSlug) {
+        return; // Do nothing if it's the same episode
+    }
 
-    // Add the new episode as the most recent entry for this series
+    // Find if there's any history for this anime series
+    const existingEntryIndex = history.findIndex(item => item.animeSlug === animeSlug);
+
+    let updatedHistory = [...history];
+
+    if (existingEntryIndex > -1) {
+        // If an entry for this anime exists, remove it
+        updatedHistory.splice(existingEntryIndex, 1);
+    }
+    
+    // Add the new or updated entry to the end of the array
     updatedHistory.push({
         animeSlug,
         episodeSlug,
-        watchedAt: serverTimestamp(),
+        watchedAt: Timestamp.now(),
     });
-    
-    // To avoid giving XP for re-watching the same episode immediately,
-    // we only add XP if it's not the most recent item in history.
-    const lastItem = history.length > 0 ? history[history.length - 1] : null;
-    const shouldAddXp = !lastItem || lastItem.episodeSlug !== episodeSlug;
 
     await updateDoc(userDocRef, {
         history: updatedHistory,
-        ...(shouldAddXp && { xp: increment(XP_PER_WATCH) })
+        xp: increment(XP_PER_WATCH) // Grant XP for watching a new episode
     });
 };
 

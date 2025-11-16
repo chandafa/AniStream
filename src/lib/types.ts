@@ -1,5 +1,4 @@
 
-
 import { Timestamp } from "firebase/firestore";
 
 // Based on the provided API documentation and common anime API structures
@@ -95,21 +94,24 @@ export interface DownloadQuality {
 
 
 export interface EpisodeStreamData {
-  episode?: string;
+  episode: string;
   anime: {
     slug: string;
   };
   has_next_episode: boolean;
   next_episode: {
     slug: string;
+    episode: string;
   } | null;
   has_previous_episode: boolean;
   previous_episode: {
     slug: string;
+    episode: string;
   } | null;
-  stream_url: string;
+  stream_url: string | null;
   servers?: StreamServer[];
   downloadLinks?: DownloadQuality[];
+  all_episodes?: Episode[];
   download_urls?: {
     mp4?: { resolution: string; urls: { provider: string; url: string; data_content?: string | null; }[] }[];
     mkv?: { resolution: string; urls: { provider: string; url: string; data_content?: string | null; }[] }[];
@@ -131,11 +133,14 @@ export interface DonghuaEpisodeStreamData {
     navigation: {
         previous_episode: {
             slug: string;
+            episode: string;
         } | null,
         next_episode: {
             slug: string;
+            episode: string;
         } | null
-    }
+    },
+    episodes_list?: Episode[];
 }
 
 export interface Genre {

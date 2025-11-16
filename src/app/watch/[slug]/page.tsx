@@ -3,13 +3,13 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { notFound, useParams } from 'next/navigation';
+import { notFound, useParams, useRouter } from 'next/navigation';
 import { getEpisodeStream } from '@/lib/api';
-import type { EpisodeStreamData, DownloadQuality, DownloadLink } from '@/lib/types';
+import type { Episode, EpisodeStreamData, DownloadQuality, DownloadLink } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { AlertTriangle, ArrowLeft, ChevronLeft, ChevronRight, Download, Server, Monitor, Loader2 } from 'lucide-react';
+import { AlertTriangle, ArrowLeft, ChevronLeft, ChevronRight, Download, Server, Monitor, Loader2, List } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useUser, useFirestore } from '@/firebase';
 import { addToHistory } from '@/lib/user-data';
@@ -18,9 +18,17 @@ import { EpisodeComments } from '@/components/anime/EpisodeComments';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import axios from 'axios';
 import { cn } from '@/lib/utils';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+  } from "@/components/ui/select"
 
 export default function WatchPage() {
   const params = useParams();
+  const router = useRouter();
   const slug = params.slug as string;
   const { toast } = useToast();
   const { user } = useUser();
@@ -34,6 +42,7 @@ export default function WatchPage() {
   const [activeQuality, setActiveQuality] = useState<string | null>(null);
   const [loadingPlayer, setLoadingPlayer] = useState(false);
   const [activeMirror, setActiveMirror] = useState<string | null>(null);
+  const [allEpisodes, setAllEpisodes] = useState<Episode[]>([]);
 
 
   useEffect(() => {
@@ -48,6 +57,9 @@ export default function WatchPage() {
             setData(result);
             if (result.stream_url) {
                 setCurrentStreamUrl(result.stream_url);
+            }
+            if (result.all_episodes) {
+                setAllEpisodes(result.all_episodes);
             }
           
             let finalDownloadLinks: DownloadQuality[] = [];
@@ -74,43 +86,44 @@ export default function WatchPage() {
                 finalDownloadLinks = result.downloadLinks;
             }
 
-            // Fallback to mirror scraper API if initial data has no download links
-            if (finalDownloadLinks.length === 0) {
-                try {
-                    const mirrorRes = await axios.get(`/api/player/mirrors?query=${slug}`);
-                    if (mirrorRes.data.mirrors && mirrorRes.data.mirrors.length > 0) {
-                        const transformedMirrors: DownloadQuality[] = mirrorRes.data.mirrors
-                            .filter((m: any) => m.mirrors.length > 0)
-                            .map((m: any) => ({
-                                quality: m.quality,
-                                links: m.mirrors.map((mirror: any) => ({
-                                    provider: mirror.label,
-                                    url: `#`, // URL is handled by handlePlay
-                                    label: mirror.label,
-                                    data_content: mirror.data_content,
-                                }))
-                            }));
-                        finalDownloadLinks = transformedMirrors;
-                    }
-                } catch (mirrorError) {
-                    console.error("Mirror fetch failed:", mirrorError);
-                }
-            }
-
             setDownloadLinks(finalDownloadLinks);
 
-            if(finalDownloadLinks.length > 0 && finalDownloadLinks[0].links.length > 0) {
-                const firstGroup = finalDownloadLinks[0];
-                setActiveQuality(firstGroup.quality);
+            // Set default active quality if none is set
+            if (finalDownloadLinks.length > 0 && !activeQuality) {
+              const firstGroup = finalDownloadLinks.find(q => q.quality.includes('mp4') || !q.quality.includes('mkv'));
+              if(firstGroup) {
+                  setActiveQuality(firstGroup.quality);
+              } else {
+                  setActiveQuality(finalDownloadLinks[0].quality)
+              }
             }
 
             if (!result.stream_url && finalDownloadLinks.length === 0) {
-                 setError('No streaming servers or download links found for this episode.');
-                 toast({
-                    variant: "destructive",
-                    title: "Not Found",
-                    description: "No content could be found for this episode.",
-                 });
+                const mirrorRes = await axios.get(`/api/player/mirrors?query=${slug}`);
+                if (mirrorRes.data.mirrors && mirrorRes.data.mirrors.length > 0) {
+                    const transformedMirrors: DownloadQuality[] = mirrorRes.data.mirrors
+                        .filter((m: any) => m.mirrors.length > 0)
+                        .map((m: any) => ({
+                            quality: m.quality,
+                            links: m.mirrors.map((mirror: any) => ({
+                                provider: mirror.label,
+                                url: `#`, // URL is handled by handlePlay
+                                label: mirror.label,
+                                data_content: mirror.data_content,
+                            }))
+                        }));
+                    setDownloadLinks(transformedMirrors);
+                     if (transformedMirrors.length > 0) {
+                        setActiveQuality(transformedMirrors[0].quality);
+                    }
+                } else {
+                    setError('No streaming servers or download links found for this episode.');
+                    toast({
+                        variant: "destructive",
+                        title: "Not Found",
+                        description: "No content could be found for this episode.",
+                    });
+                }
             }
 
           const animeSlug = result.anime.slug ? cleanSlug(result.anime.slug) : null;
@@ -138,7 +151,7 @@ export default function WatchPage() {
     };
 
     fetchData();
-  }, [slug, toast, user, firestore]);
+  }, [slug, toast, user, firestore, activeQuality]);
   
   const handleQualityClick = (quality: string) => {
     setActiveQuality(prev => (prev === quality ? null : quality));
@@ -148,9 +161,9 @@ export default function WatchPage() {
     if (loadingPlayer) return;
 
     if (!mirror.data_content) {
-        // If it's a direct URL, just set it
         if(mirror.url.startsWith('http')) {
             setCurrentStreamUrl(mirror.url);
+            setActiveMirror(mirror.label || mirror.provider);
         } else {
             toast({ variant: 'destructive', title: 'Error', description: 'No data content available for this mirror.' });
         }
@@ -174,6 +187,11 @@ export default function WatchPage() {
     }
   };
 
+  const handleServerClick = (server: { name: string; url: string }) => {
+    setCurrentStreamUrl(server.url);
+    setActiveMirror(server.name);
+  }
+
   const qualityColors: { [key: string]: string } = {
     "360": "bg-gray-600 hover:bg-gray-700",
     "480": "bg-blue-600 hover:bg-blue-700",
@@ -188,6 +206,12 @@ export default function WatchPage() {
     }
     return "bg-gray-500 hover:bg-gray-600";
   }
+
+  const onEpisodeChange = (newSlug: string) => {
+    if (newSlug) {
+      router.push(`/watch/${newSlug}`);
+    }
+  };
 
 
   if (loading) {
@@ -206,11 +230,13 @@ export default function WatchPage() {
     );
   }
 
-  if (!data && downloadLinks.length === 0) {
+  if (!data) {
     notFound();
   }
   
   const animeSlug = data ? cleanSlug(data.anime.slug) : null;
+  const mp4DownloadLinks = downloadLinks.filter(q => q.quality.includes('mp4'));
+  const mkvDownloadLinks = downloadLinks.filter(q => q.quality.includes('mkv'));
 
   return (
     <div className="bg-background text-foreground">
@@ -233,7 +259,7 @@ export default function WatchPage() {
             </div>
              {/* Mirror buttons container */}
              <div className="bg-gray-800/70 p-2 flex flex-wrap justify-center gap-2">
-                {downloadLinks.map((qualityGroup) => (
+                {mp4DownloadLinks.map((qualityGroup) => (
                     <Button
                         key={qualityGroup.quality}
                         onClick={() => handleQualityClick(qualityGroup.quality)}
@@ -244,7 +270,7 @@ export default function WatchPage() {
                         )}
                         >
                         <Monitor className="mr-2 h-4 w-4" />
-                        Mirror {qualityGroup.quality.split(' ')[0]}
+                        {qualityGroup.quality.replace('(MP4)', '').trim()}
                     </Button>
                 ))}
              </div>
@@ -293,19 +319,22 @@ export default function WatchPage() {
                 <h1 className="font-headline text-xl md:text-2xl font-bold">
                     {data?.episode || 'Watching Anime'}
                 </h1>
-                {data && (
-                  <div className="flex gap-2 shrink-0">
-                      <Button variant="outline" size="sm" disabled={!data.has_previous_episode} asChild>
-                      <Link href={data.previous_episode ? `/watch/${data.previous_episode.slug}` : '#'}>
-                          <ChevronLeft className="h-4 w-4" /> Prev
-                      </Link>
-                      </Button>
-                      <Button variant="outline" size="sm" disabled={!data.has_next_episode} asChild>
-                      <Link href={data.next_episode ? `/watch/${data.next_episode.slug}` : '#'}>
-                          Next <ChevronRight className="h-4 w-4" />
-                      </Link>
-                      </Button>
-                  </div>
+                {allEpisodes && allEpisodes.length > 0 && (
+                    <div className="flex items-center gap-2">
+                        <List className="h-5 w-5 text-muted-foreground" />
+                        <Select onValueChange={onEpisodeChange} defaultValue={slug}>
+                            <SelectTrigger className="w-full md:w-[250px]">
+                                <SelectValue placeholder="Pilih Episode" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {allEpisodes.map((episode) => (
+                                <SelectItem key={episode.slug} value={episode.slug}>
+                                    {episode.episode}
+                                </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
                 )}
             </div>
         </div>
@@ -323,7 +352,7 @@ export default function WatchPage() {
                             <Button
                                 key={server.name}
                                 variant={currentStreamUrl === server.url ? 'default' : 'outline'}
-                                onClick={() => handlePlay(server)}
+                                onClick={() => handleServerClick(server)}
                             >
                                 {server.name}
                             </Button>
@@ -332,6 +361,33 @@ export default function WatchPage() {
                 </CardContent>
             </Card>
         )}
+
+        {mkvDownloadLinks.length > 0 && (
+            <Card>
+                 <CardHeader>
+                    <CardTitle className="text-lg flex items-center gap-2">
+                        <Download className="w-5 h-5" /> MKV Download Links
+                    </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    {mkvDownloadLinks.map((qualityGroup) => (
+                         <div key={qualityGroup.quality}>
+                            <h4 className="font-semibold text-md mb-2">{qualityGroup.quality}</h4>
+                            <div className="flex flex-wrap gap-2">
+                                {qualityGroup.links.map((link, index) => (
+                                    <Button asChild variant="secondary" key={`${link.provider}-${index}`}>
+                                        <a href={link.url} target="_blank" rel="noopener noreferrer">
+                                            {link.provider}
+                                        </a>
+                                    </Button>
+                                ))}
+                            </div>
+                        </div>
+                    ))}
+                </CardContent>
+            </Card>
+        )}
+
 
         <div className="py-6">
             <EpisodeComments episodeId={slug} />

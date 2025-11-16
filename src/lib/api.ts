@@ -1,12 +1,8 @@
 
-
-
-
-
-
 import {
   Anime,
   AnimeDetail,
+  Episode,
   EpisodeStreamData,
   Genre,
   HomeData,
@@ -19,6 +15,7 @@ import {
   DownloadQuality,
 } from './types';
 import { cleanSlug } from './utils';
+import axios from 'axios';
 
 const API_BASE_URL = 'https://www.sankavollerei.com/anime';
 
@@ -80,24 +77,6 @@ async function getDonghuaDetails(slug: string): Promise<AnimeDetail | null> {
         if (!donghuaData.slug) {
             donghuaData.slug = slug;
         }
-
-        // Dynamically generate episode list if it doesn't exist
-        if ((!donghuaData.episode_lists || donghuaData.episode_lists.length === 0) && donghuaData.episodes_count) {
-            const countMatch = donghuaData.episodes_count.match(/\d+/);
-            const episodeCount = countMatch ? parseInt(countMatch[0], 10) : 0;
-            
-            if (episodeCount > 0) {
-                donghuaData.episode_lists = Array.from({ length: episodeCount }, (_, i) => {
-                    const episodeNumber = i + 1;
-                    const episodeSlug = `${slug}-episode-${episodeNumber}-subtitle-indonesia`;
-                    return {
-                        episode: `Episode ${episodeNumber}`,
-                        episode_number: episodeNumber,
-                        slug: episodeSlug,
-                    };
-                });
-            }
-        }
         return donghuaData;
     }
     return null;
@@ -106,8 +85,9 @@ async function getDonghuaDetails(slug: string): Promise<AnimeDetail | null> {
 async function getDonghuaEpisodeStream(slug: string): Promise<EpisodeStreamData | null> {
     const data = await fetcher<DonghuaEpisodeStreamData>(`donghua/episode/${slug}`, [`donghua-episode:${slug}`]);
 
-    if (!data || !data.streaming || !data.streaming.main_url) return null;
-
+    if (!data) return null;
+    
+    const streamUrl = data.streaming?.main_url?.url ?? null;
     const animeSlug = data.donghua_details?.slug ? cleanSlug(data.donghua_details.slug) : cleanSlug(slug);
     
     const downloadLinks: DownloadQuality[] = [];
@@ -128,16 +108,17 @@ async function getDonghuaEpisodeStream(slug: string): Promise<EpisodeStreamData 
 
     return {
         episode: data.episode,
-        stream_url: data.streaming.main_url.url,
-        servers: data.streaming.servers,
+        stream_url: streamUrl,
+        servers: data.streaming?.servers ?? [],
         downloadLinks: downloadLinks,
         anime: {
             slug: animeSlug
         },
+        all_episodes: data.episodes_list ?? [],
         has_next_episode: !!data.navigation?.next_episode,
-        next_episode: data.navigation?.next_episode ? { slug: data.navigation.next_episode.slug } : null,
+        next_episode: data.navigation?.next_episode ? { slug: data.navigation.next_episode.slug, episode: data.navigation.next_episode.episode } : null,
         has_previous_episode: !!data.navigation?.previous_episode,
-        previous_episode: data.navigation?.previous_episode ? { slug: data.navigation.previous_episode.slug } : null,
+        previous_episode: data.navigation?.previous_episode ? { slug: data.navigation.previous_episode.slug, episode: data.navigation.previous_episode.episode } : null,
     };
 }
 
@@ -148,15 +129,19 @@ export async function getAnimeDetails(slug: string): Promise<AnimeDetail | null>
     
     const animeData = await fetcher<{ data: AnimeDetail }>(`anime/${safeSlug}`, [`anime:${safeSlug}`]);
     
-    // Check if the standard anime endpoint returns valid data with episodes
+    // Check if the standard anime endpoint returns valid data
     if (animeData && animeData.data && animeData.data.episode_lists && animeData.data.episode_lists.length > 0) {
       return animeData.data;
     }
   
     // If the standard anime endpoint fails or has no episodes, try the Donghua detail endpoint.
-    const donghuaDetails = await getDonghuaDetails(safeSlug);
-    if(donghuaDetails) {
-        return donghuaDetails;
+    try {
+        const donghuaDetails = await getDonghuaDetails(safeSlug);
+        if(donghuaDetails) {
+            return donghuaDetails;
+        }
+    } catch (e) {
+        console.error("Failed to fetch Donghua details, falling back to original data if available.", e);
     }
     
     // Fallback to original anime data even if it has no episodes
@@ -170,35 +155,75 @@ export async function getAnimeDetails(slug: string): Promise<AnimeDetail | null>
 export async function getEpisodeStream(slug: string): Promise<EpisodeStreamData | null> {
   // Try standard anime endpoint first
   const animeData = await fetcher<{ data: EpisodeStreamData }>(`episode/${slug}`, [`episode:${slug}`]);
-  if (animeData?.data?.stream_url) {
-      // Standard API might not provide a list of servers, so we create one from the main stream_url
-      if (!animeData.data.servers) {
-        animeData.data.servers = [{ name: 'Default', url: animeData.data.stream_url }];
+
+  if (animeData?.data) {
+      const { data } = animeData;
+      // Fetch all episodes for navigation
+      const animeDetails = await getAnimeDetails(data.anime.slug);
+      data.all_episodes = animeDetails?.episode_lists ?? [];
+
+      if (data.stream_url) {
+          if (!data.servers) {
+            data.servers = [{ name: 'Default', url: data.stream_url }];
+          }
+          if (data.download_urls) {
+            const downloadLinks: DownloadQuality[] = [];
+            const formats = ['mp4', 'mkv'];
+            formats.forEach(format => {
+                if (data.download_urls![format as 'mp4' | 'mkv']) {
+                    data.download_urls![format as 'mp4' | 'mkv']!.forEach(item => {
+                        let qualityGroup = downloadLinks.find(q => q.quality === `${item.resolution} (${format.toUpperCase()})`);
+                        if (!qualityGroup) {
+                            qualityGroup = { quality: `${item.resolution} (${format.toUpperCase()})`, links: [] };
+                            downloadLinks.push(qualityGroup);
+                        }
+                        qualityGroup.links.push(...item.urls);
+                    });
+                }
+            });
+            data.downloadLinks = downloadLinks;
+          }
+          return data;
       }
-      if (animeData.data.download_urls) {
-        const downloadLinks: DownloadQuality[] = [];
-        const formats = ['mp4', 'mkv'];
-        formats.forEach(format => {
-            if (animeData.data.download_urls![format as 'mp4' | 'mkv']) {
-                animeData.data.download_urls![format as 'mp4' | 'mkv']!.forEach(item => {
-                    let qualityGroup = downloadLinks.find(q => q.quality === `${item.resolution} (${format.toUpperCase()})`);
-                    if (!qualityGroup) {
-                        qualityGroup = { quality: `${item.resolution} (${format.toUpperCase()})`, links: [] };
-                        downloadLinks.push(qualityGroup);
-                    }
-                    qualityGroup.links.push(...item.urls);
-                });
-            }
-        });
-        animeData.data.downloadLinks = downloadLinks;
-      }
-      return animeData.data;
   }
   
-  // If it fails, try donghua endpoint
+  // If it fails or has no stream url, try donghua endpoint
   const donghuaData = await getDonghuaEpisodeStream(slug);
-  if (donghuaData?.stream_url) {
+  if (donghuaData) {
       return donghuaData;
+  }
+  
+  // As a last resort, try the mirror scraper if no other data is available.
+  try {
+    const mirrorRes = await axios.get(`/api/player/mirrors?query=${slug}`);
+    if (mirrorRes.data.mirrors && mirrorRes.data.mirrors.length > 0) {
+        const animeDetails = await getAnimeDetails(slug);
+        const transformedMirrors: DownloadQuality[] = mirrorRes.data.mirrors
+            .filter((m: any) => m.mirrors.length > 0)
+            .map((m: any) => ({
+                quality: m.quality,
+                links: m.mirrors.map((mirror: any) => ({
+                    provider: mirror.label,
+                    url: `#`,
+                    label: mirror.label,
+                    data_content: mirror.data_content,
+                }))
+            }));
+        
+        return {
+            episode: animeDetails?.title ? `${animeDetails.title} Episode` : slug, // Placeholder title
+            stream_url: null,
+            downloadLinks: transformedMirrors,
+            anime: { slug },
+            all_episodes: animeDetails?.episode_lists ?? [],
+            has_next_episode: false,
+            next_episode: null,
+            has_previous_episode: false,
+            previous_episode: null,
+        }
+    }
+  } catch (e) {
+    console.error("Mirror fetch API failed:", e);
   }
 
   return null;
@@ -303,3 +328,5 @@ export async function getGenres(): Promise<Genre[] | null> {
     const data = await fetcher<{ data: Genre[] }>('genre', ['genres']);
     return data?.data ?? null;
 }
+
+    
