@@ -44,9 +44,25 @@
         },
         "history": {
           "type": "array",
-          "description": "References to viewed Anime Episodes.",
+          "description": "List of watched episodes, with the most recent at the end.",
           "items": {
-            "type": "string"
+            "type": "object",
+            "properties": {
+              "animeSlug": {
+                "type": "string",
+                "description": "The slug of the anime series."
+              },
+              "episodeSlug": {
+                "type": "string",
+                "description": "The slug of the specific episode watched."
+              },
+              "watchedAt": {
+                "type": "string",
+                "format": "date-time",
+                "description": "The timestamp when the episode was watched."
+              }
+            },
+            "required": ["animeSlug", "episodeSlug", "watchedAt"]
           }
         },
         "level": {

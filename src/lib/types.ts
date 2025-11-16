@@ -173,4 +173,10 @@ export interface Comment {
     timestamp: Timestamp;
 }
 
+export interface HistoryItem {
+    animeSlug: string;
+    episodeSlug: string;
+    watchedAt: Timestamp;
+}
+
     

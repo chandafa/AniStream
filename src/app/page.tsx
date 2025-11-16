@@ -8,7 +8,8 @@ import { CompletedAnimeList } from '@/components/home/CompletedAnimeList';
 import type { Anime } from '@/lib/types';
 import { HomeHero } from '@/components/home/HomeHero';
 import { DonghuaList } from '@/components/home/DonghuaList';
-
+import { ContinueWatching } from '@/components/home/ContinueWatching';
+import { ContinueWatchingSkeleton } from '@/components/home/ContinueWatching';
 
 const staticCarouselData: Anime[] = [
     {
@@ -50,6 +51,10 @@ async function HomeContent() {
       
       <div className="container space-y-6 py-4 md:space-y-10 md:py-10">
         
+        <Suspense fallback={<ContinueWatchingSkeleton />}>
+            <ContinueWatching />
+        </Suspense>
+
         {homeData.latest_episodes && homeData.latest_episodes.length > 0 && (
           <AnimeList title="New Release" animes={homeData.latest_episodes} />
         )}
@@ -114,3 +119,5 @@ export default function Home() {
     </Suspense>
   );
 }
+
+    

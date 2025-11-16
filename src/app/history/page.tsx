@@ -1,10 +1,9 @@
 
 'use client';
 
-import type { Metadata } from 'next';
 import { sharedMetadata } from '@/lib/metadata';
 import { AnimeCard } from '@/components/anime/AnimeCard';
-import type { Anime } from '@/lib/types';
+import type { Anime, HistoryItem } from '@/lib/types';
 import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { doc } from 'firebase/firestore';
 import { useEffect, useState } from 'react';
@@ -12,11 +11,6 @@ import { getAnimeDetails } from '@/lib/api';
 import { Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-
-// export const metadata: Metadata = {
-//   title: 'Viewing History',
-//   ...sharedMetadata,
-// };
 
 export default function HistoryPage() {
   const { user, isUserLoading } = useUser();
@@ -26,7 +20,7 @@ export default function HistoryPage() {
     user ? doc(firestore, 'users', user.uid) : null
   , [user, firestore]);
 
-  const { data: userData, isLoading: isUserDataLoading } = useDoc<{history?: string[]}>(userDocRef);
+  const { data: userData, isLoading: isUserDataLoading } = useDoc<{history?: HistoryItem[]}>(userDocRef);
 
   const [historyAnime, setHistoryAnime] = useState<Anime[]>([]);
   const [isLoadingAnime, setIsLoadingAnime] = useState(true);
@@ -37,8 +31,11 @@ export default function HistoryPage() {
     const fetchHistoryAnime = async () => {
       if (userData && userData.history) {
         setIsLoadingAnime(true);
-        // Remove duplicates and get unique anime slugs
-        const uniqueAnimeSlugs = [...new Set(userData.history)];
+        // Get unique anime slugs from history, sorted by most recent
+        const uniqueAnimeSlugs = [
+            ...new Map(userData.history.reverse().map(item => [item.animeSlug, item])).values()
+        ].map(item => item.animeSlug);
+        
         const animePromises = uniqueAnimeSlugs.map(slug => getAnimeDetails(slug));
         const animeResults = await Promise.all(animePromises);
         const validAnime = animeResults.filter(anime => anime !== null) as Anime[];
@@ -94,3 +91,5 @@ export default function HistoryPage() {
     </div>
   );
 }
+
+    

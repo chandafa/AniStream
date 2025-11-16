@@ -115,7 +115,7 @@ export default function WatchPage() {
 
           const animeSlug = result.anime.slug ? cleanSlug(result.anime.slug) : null;
           if (user && firestore && animeSlug) {
-            addToHistory(firestore, user.uid, animeSlug);
+            addToHistory(firestore, user.uid, animeSlug, slug);
           }
         } else {
              setError('No streaming servers or download links found for this episode.');

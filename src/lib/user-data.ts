@@ -1,6 +1,7 @@
 
 
 import { doc, getDoc, updateDoc, setDoc, arrayUnion, arrayRemove, Firestore, increment, addDoc, collection, serverTimestamp } from 'firebase/firestore';
+import type { HistoryItem } from './types';
 
 const XP_PER_WATCH = 10;
 const XP_PER_BOOKMARK = 5;
@@ -53,22 +54,34 @@ export const toggleBookmark = async (
 export const addToHistory = async (
     firestore: Firestore,
     userId: string,
-    animeSlug: string
+    animeSlug: string,
+    episodeSlug: string
 ) => {
     const userDocRef = await ensureUserDoc(firestore, userId);
     const userDoc = await getDoc(userDocRef);
     const userData = userDoc.data();
+    
+    const history: HistoryItem[] = userData?.history ?? [];
 
-    // To avoid giving XP for re-watching the same episode/anime immediately,
+    // Remove existing entry for the same anime series
+    const updatedHistory = history.filter(item => item.animeSlug !== animeSlug);
+
+    // Add the new episode as the most recent entry for this series
+    updatedHistory.push({
+        animeSlug,
+        episodeSlug,
+        watchedAt: serverTimestamp(),
+    });
+    
+    // To avoid giving XP for re-watching the same episode immediately,
     // we only add XP if it's not the most recent item in history.
-    // A more robust solution might check timestamps.
-    const history = userData?.history ?? [];
-    if (history[history.length - 1] !== animeSlug) {
-        await updateDoc(userDocRef, {
-            history: arrayUnion(animeSlug),
-            xp: increment(XP_PER_WATCH)
-        });
-    }
+    const lastItem = history.length > 0 ? history[history.length - 1] : null;
+    const shouldAddXp = !lastItem || lastItem.episodeSlug !== episodeSlug;
+
+    await updateDoc(userDocRef, {
+        history: updatedHistory,
+        ...(shouldAddXp && { xp: increment(XP_PER_WATCH) })
+    });
 };
 
 export const addComment = async (
