@@ -151,7 +151,7 @@ export default function WatchPage() {
     };
 
     fetchData();
-  }, [slug, toast, user, firestore, activeQuality]);
+  }, [slug, toast, user, firestore]);
   
   const handleQualityClick = (quality: string) => {
     setActiveQuality(prev => (prev === quality ? null : quality));
@@ -160,8 +160,14 @@ export default function WatchPage() {
   const handlePlay = async (mirror: DownloadLink) => {
     if (loadingPlayer) return;
 
+    if (mirror.url && mirror.url !== '#') {
+      setCurrentStreamUrl(mirror.url);
+      setActiveMirror(mirror.label || mirror.provider);
+      return;
+    }
+
     if (!mirror.data_content) {
-        if(mirror.url.startsWith('http')) {
+        if(mirror.url && mirror.url.startsWith('http')) {
             setCurrentStreamUrl(mirror.url);
             setActiveMirror(mirror.label || mirror.provider);
         } else {
@@ -235,7 +241,7 @@ export default function WatchPage() {
   }
   
   const animeSlug = data ? cleanSlug(data.anime.slug) : null;
-  const mp4DownloadLinks = downloadLinks.filter(q => q.quality.includes('mp4'));
+  const mp4DownloadLinks = downloadLinks.filter(q => !q.quality.includes('mkv') && q.links && q.links.length > 0);
   const mkvDownloadLinks = downloadLinks.filter(q => q.quality.includes('mkv'));
 
   return (
@@ -270,7 +276,7 @@ export default function WatchPage() {
                         )}
                         >
                         <Monitor className="mr-2 h-4 w-4" />
-                        {qualityGroup.quality.replace('(MP4)', '').trim()}
+                        {qualityGroup.quality.replace('(MP4)', '').replace('p', 'P').trim()}
                     </Button>
                 ))}
              </div>
@@ -281,7 +287,7 @@ export default function WatchPage() {
         {/* Active Mirror's Provider/Download Links */}
         {activeQuality && (
             <div className='my-4 p-4 bg-card rounded-lg'>
-                <h3 className='text-lg font-bold mb-3 text-center'>Servers for {activeQuality}</h3>
+                <h3 className='text-lg font-bold mb-3 text-center'>Servers for {activeQuality.replace('p', 'P')}</h3>
                 <div className='flex flex-wrap justify-center items-center gap-x-4 gap-y-2'>
                     {downloadLinks.find(q => q.quality === activeQuality)?.links.map((link, index) => {
                       const isActive = activeMirror === (link.label || link.provider);
@@ -414,10 +420,7 @@ function WatchPageSkeleton() {
                 <Skeleton className="h-6 w-48" />
                 <div className="flex flex-col md:flex-row gap-4 justify-between">
                     <Skeleton className="h-8 w-3/4" />
-                    <div className="flex gap-2">
-                        <Skeleton className="h-9 w-24" />
-                        <Skeleton className="h-9 w-24" />
-                    </div>
+                    <Skeleton className="h-9 w-48" />
                 </div>
                  <div className="py-6">
                     <Skeleton className="h-24 w-full" />
@@ -429,5 +432,3 @@ function WatchPageSkeleton() {
         </div>
     );
   }
-
-    
