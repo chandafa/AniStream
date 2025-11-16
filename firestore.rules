@@ -55,7 +55,30 @@ service cloud.firestore {
     match /episodes/{episodeId} {
       allow get, list: if true;
       allow create, update, delete: if false;
+
+      /**
+       * @description Handles comments for a specific episode.
+       * @path /episodes/{episodeId}/comments/{commentId}
+       * @allow (get, list) - All users can read comments.
+       * @allow (create) - Authenticated users can post comments.
+       * @allow (update, delete) - Users can only modify their own comments.
+       * @principle Public read, authenticated write, owner-only modification.
+       */
+      match /comments/{commentId} {
+        function isSignedIn() {
+          return request.auth != null;
+        }
+
+        function isCommentOwner() {
+          return request.auth.uid == resource.data.userId;
+        }
+
+        allow get, list: if true;
+        allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+        allow update, delete: if isSignedIn() && isCommentOwner();
+      }
     }
+
 
     /**
      * @description Allows public read access to genre data. No writes are allowed.
