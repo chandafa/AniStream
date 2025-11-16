@@ -8,7 +8,7 @@ import { getAnimeDetails } from '@/lib/api';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Bookmark, PlayCircle, Star, CheckCircle } from 'lucide-react';
+import { Bookmark, PlayCircle, Star, CheckCircle, Play } from 'lucide-react';
 import type { Metadata } from 'next';
 import { sharedMetadata } from '@/lib/metadata';
 import { useUser } from '@/firebase';
@@ -48,10 +48,16 @@ export default function AnimeDetailPage({ params: serverParams }: Props) {
 
   const bookmarked = isBookmarked(userData, anime?.slug);
   
-  const watchedEpisodes = useMemo(() => {
-    if (!userData?.history) return new Set<string>();
-    return new Set(userData.history.map(item => item.episodeSlug));
-  }, [userData]);
+  const { watchedEpisodes, currentlyWatchingSlug } = useMemo(() => {
+    if (!userData?.history) return { watchedEpisodes: new Set<string>(), currentlyWatchingSlug: null };
+    
+    const historyForThisAnime = userData.history.filter(item => item.animeSlug === slug).sort((a, b) => b.watchedAt.toMillis() - a.watchedAt.toMillis());
+    
+    const watchedSlugs = new Set(historyForThisAnime.map(item => item.episodeSlug));
+    const latestWatchedEpisode = historyForThisAnime.length > 0 ? historyForThisAnime[0].episodeSlug : null;
+
+    return { watchedEpisodes: watchedSlugs, currentlyWatchingSlug: latestWatchedEpisode };
+  }, [userData, slug]);
 
 
   useEffect(() => {
@@ -167,10 +173,13 @@ export default function AnimeDetailPage({ params: serverParams }: Props) {
             {anime.episode_lists && anime.episode_lists.length > 0 ? (
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
                     {anime.episode_lists.map((ep: any) => {
-                      const isWatched = watchedEpisodes.has(ep.slug);
+                      const isCurrentlyWatching = currentlyWatchingSlug === ep.slug;
+                      const isWatched = watchedEpisodes.has(ep.slug) && !isCurrentlyWatching;
+
                       return (
                         <Button variant="outline" asChild key={ep.slug}>
-                            <Link href={`/watch/${ep.slug}`} className={cn("truncate", isWatched && "text-muted-foreground")} title={ep.episode}>
+                            <Link href={`/watch/${ep.slug}`} className={cn("truncate", (isWatched || isCurrentlyWatching) && "text-muted-foreground")} title={ep.episode}>
+                                {isCurrentlyWatching && <Play className="w-4 h-4 mr-2 text-primary fill-primary" />}
                                 {isWatched && <CheckCircle className="w-4 h-4 mr-2 text-primary" />}
                                 Episode {ep.episode_number}
                             </Link>
@@ -186,3 +195,4 @@ export default function AnimeDetailPage({ params: serverParams }: Props) {
     </div>
   );
 }
+
