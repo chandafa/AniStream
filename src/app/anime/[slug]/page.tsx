@@ -8,16 +8,19 @@ import { getAnimeDetails } from '@/lib/api';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Bookmark, PlayCircle, Star } from 'lucide-react';
+import { Bookmark, PlayCircle, Star, CheckCircle } from 'lucide-react';
 import type { Metadata } from 'next';
 import { sharedMetadata } from '@/lib/metadata';
 import { useUser } from '@/firebase';
 import { doc } from 'firebase/firestore';
-import { useFirestore, useDoc } from '@/firebase';
+import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { toggleBookmark, isBookmarked } from '@/lib/user-data';
 import { useToast } from '@/hooks/use-toast';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { cleanSlug } from '@/lib/utils';
+import { cn } from '@/lib/utils';
+import type { HistoryItem } from '@/lib/types';
+
 
 type Props = {
   params: { slug: string };
@@ -37,10 +40,19 @@ export default function AnimeDetailPage({ params: serverParams }: Props) {
   const [anime, setAnime] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
-  const userDocRef = user ? doc(firestore, 'users', user.uid) : null;
-  const { data: userData } = useDoc(userDocRef);
+  const userDocRef = useMemoFirebase(() =>
+    user ? doc(firestore, 'users', user.uid) : null
+  , [user, firestore]);
+  
+  const { data: userData } = useDoc<{bookmarks?: string[], history?: HistoryItem[]}>(userDocRef);
 
   const bookmarked = isBookmarked(userData, anime?.slug);
+  
+  const watchedEpisodes = useMemo(() => {
+    if (!userData?.history) return new Set<string>();
+    return new Set(userData.history.map(item => item.episodeSlug));
+  }, [userData]);
+
 
   useEffect(() => {
     async function fetchAnime() {
@@ -154,13 +166,17 @@ export default function AnimeDetailPage({ params: serverParams }: Props) {
         <CardContent>
             {anime.episode_lists && anime.episode_lists.length > 0 ? (
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                    {anime.episode_lists.map((ep: any) => (
+                    {anime.episode_lists.map((ep: any) => {
+                      const isWatched = watchedEpisodes.has(ep.slug);
+                      return (
                         <Button variant="outline" asChild key={ep.slug}>
-                            <Link href={`/watch/${ep.slug}`} className="truncate" title={ep.episode}>
+                            <Link href={`/watch/${ep.slug}`} className={cn("truncate", isWatched && "text-muted-foreground")} title={ep.episode}>
+                                {isWatched && <CheckCircle className="w-4 h-4 mr-2 text-primary" />}
                                 Episode {ep.episode_number}
                             </Link>
                         </Button>
-                    ))}
+                      )
+                    })}
                 </div>
             ) : (
                 <p className="text-muted-foreground">No episodes available yet.</p>
