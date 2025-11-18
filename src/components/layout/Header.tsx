@@ -19,6 +19,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
+import { ThemeToggle } from '../theme-toggle';
 
 const navLinks = [
   { href: '/', label: 'Home' },
@@ -99,6 +100,8 @@ export function AppHeader() {
                 <span className="sr-only">Search</span>
               </Link>
             </Button>
+
+            <ThemeToggle />
 
             <div className="hidden md:flex">
                 {user ? (
