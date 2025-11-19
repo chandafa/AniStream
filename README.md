@@ -1,2 +1,2 @@
 # Anime Streaming Free
-streaming anime free by chandafa
+streaming anime free by chandafaa
