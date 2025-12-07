@@ -19,9 +19,9 @@ import axios from 'axios';
 
 const API_BASE_URL = 'https://www.sankavollerei.com/anime';
 const BACKUP_API_BASE_URL = 'https://www.sankavollerei.com/anime/samehadaku';
+const THIRD_BACKUP_API_BASE_URL = 'https://www.sankavollerei.com/anime/animasu';
 
-async function fetcher<T>(path: string, tags?: string[], useBackup = false): Promise<T | null> {
-  const baseUrl = useBackup ? BACKUP_API_BASE_URL : API_BASE_URL;
+async function fetcher<T>(path: string, tags?: string[], baseUrl: string = API_BASE_URL): Promise<T | null> {
   const fullUrl = path.startsWith('http') ? path : `${baseUrl}/${path}`;
 
   try {
@@ -44,7 +44,7 @@ async function fetcher<T>(path: string, tags?: string[], useBackup = false): Pro
 }
 
 export async function getHomeData(): Promise<HomeData | null> {
-  let data = await fetcher<{
+  type HomeApiResponse = {
     data: {
       trending_anime: Anime[];
       ongoing_anime: Anime[];
@@ -52,20 +52,21 @@ export async function getHomeData(): Promise<HomeData | null> {
       complete_anime: Anime[];
       featured?: Anime[];
     }
-  }>('home', ['home']);
+  };
+
+  // 1. Try Primary API
+  let data = await fetcher<HomeApiResponse>('home', ['home'], API_BASE_URL);
   
-  // If primary API fails or returns incomplete data, try the backup
+  // 2. If primary fails, try Backup API
   if (!data || !data.data || !data.data.trending_anime || data.data.trending_anime.length === 0) {
     console.log("Primary API failed or returned no data. Trying backup API...");
-    data = await fetcher<{
-      data: {
-        trending_anime: Anime[];
-        ongoing_anime: Anime[];
-        latest_episode_anime: Anime[];
-        complete_anime: Anime[];
-        featured?: Anime[];
-      }
-    }>('home', ['home'], true); // useBackup = true
+    data = await fetcher<HomeApiResponse>('home', ['home'], BACKUP_API_BASE_URL);
+  }
+
+  // 3. If backup also fails, try Third Backup API
+  if (!data || !data.data || !data.data.trending_anime || data.data.trending_anime.length === 0) {
+    console.log("Second API failed or returned no data. Trying third backup API...");
+    data = await fetcher<HomeApiResponse>('home?page=1', ['home'], THIRD_BACKUP_API_BASE_URL);
   }
 
   if (!data || !data.data) return null;
