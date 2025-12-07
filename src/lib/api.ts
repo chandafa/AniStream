@@ -18,26 +18,33 @@ import { cleanSlug } from './utils';
 import axios from 'axios';
 
 const API_BASE_URL = 'https://www.sankavollerei.com/anime';
+const BACKUP_API_BASE_URL = 'https://www.sankavollerei.com/anime/samehadaku';
 
-async function fetcher<T>(path: string, tags?: string[]): Promise<T | null> {
+async function fetcher<T>(path: string, tags?: string[], useBackup = false): Promise<T | null> {
+  const baseUrl = useBackup ? BACKUP_API_BASE_URL : API_BASE_URL;
+  const fullUrl = path.startsWith('http') ? path : `${baseUrl}/${path}`;
+
   try {
-    const res = await fetch(`${API_BASE_URL}/${path}`, {
-      next: { revalidate: 3600, tags }, // Revalidate every hour
+    const res = await axios.get(fullUrl, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+      }
     });
-    if (!res.ok) {
-      console.error(`API fetch failed for path: ${path} with status: ${res.status}`);
+    
+    if (res.status !== 200) {
+      console.error(`API fetch failed for path: ${fullUrl} with status: ${res.status}`);
       return null;
     }
-    const json = await res.json();
-    return json;
+    
+    return res.data;
   } catch (error) {
-    console.error(`Error fetching from API path: ${path}`, error);
+    console.error(`Error fetching from API path: ${fullUrl}`, error);
     return null;
   }
 }
 
 export async function getHomeData(): Promise<HomeData | null> {
-  const data = await fetcher<{
+  let data = await fetcher<{
     data: {
       trending_anime: Anime[];
       ongoing_anime: Anime[];
@@ -47,6 +54,20 @@ export async function getHomeData(): Promise<HomeData | null> {
     }
   }>('home', ['home']);
   
+  // If primary API fails or returns incomplete data, try the backup
+  if (!data || !data.data || !data.data.trending_anime || data.data.trending_anime.length === 0) {
+    console.log("Primary API failed or returned no data. Trying backup API...");
+    data = await fetcher<{
+      data: {
+        trending_anime: Anime[];
+        ongoing_anime: Anime[];
+        latest_episode_anime: Anime[];
+        complete_anime: Anime[];
+        featured?: Anime[];
+      }
+    }>('home', ['home'], true); // useBackup = true
+  }
+
   if (!data || !data.data) return null;
 
   return {
@@ -328,5 +349,3 @@ export async function getGenres(): Promise<Genre[] | null> {
     const data = await fetcher<{ data: Genre[] }>('genre', ['genres']);
     return data?.data ?? null;
 }
-
-    
