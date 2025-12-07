@@ -5,33 +5,10 @@ import { Suspense } from 'react';
 import { PopularToday } from '@/components/home/PopularToday';
 import { OngoingAnimeList } from '@/components/home/OngoingAnimeList';
 import { CompletedAnimeList } from '@/components/home/CompletedAnimeList';
-import type { Anime } from '@/lib/types';
-import { HomeHero } from '@/components/home/HomeHero';
+import { HomeHero, HomeHeroSkeleton } from '@/components/home/HomeHero';
 import { DonghuaList } from '@/components/home/DonghuaList';
-import { ContinueWatching } from '@/components/home/ContinueWatching';
-import { ContinueWatchingSkeleton } from '@/components/home/ContinueWatching';
+import { ContinueWatching, ContinueWatchingSkeleton } from '@/components/home/ContinueWatching';
 import { ViewingHistory, ViewingHistorySkeleton } from '@/components/home/ViewingHistory';
-
-const staticCarouselData: Anime[] = [
-    {
-      title: 'Epic Adventure in a Fantasy World',
-      slug: 'featured-1',
-      poster: 'https://picsum.photos/seed/carousel1/1280/720',
-      latestEpisode: { slug: 'watch/featured-1-ep-1', title: 'Episode 1' }
-    },
-    {
-      title: 'High School Slice of Life',
-      slug: 'featured-2',
-      poster: 'https://picsum.photos/seed/carousel2/1280/720',
-      latestEpisode: { slug: 'watch/featured-2-ep-1', title: 'Episode 1' }
-    },
-    {
-      title: 'Sci-Fi Thriller: The Last Hope',
-      slug: 'featured-3',
-      poster: 'https://picsum.photos/seed/carousel3/1280/720',
-      latestEpisode: { slug: 'watch/featured-3-ep-1', title: 'Episode 1' }
-    },
-  ];
 
 async function HomeContent() {
   const homeData = await getHomeData();
@@ -39,16 +16,19 @@ async function HomeContent() {
   if (!homeData) {
     return (
       <div className="container py-6">
-        <p>Could not load data. Please try again later.</p>
+        <HomeHeroSkeleton />
+        <p className="text-center mt-8">Could not load data. Please try again later.</p>
       </div>
     );
   }
 
+  const featuredAnime = homeData.trending?.[0] ? [homeData.trending[0]] : [];
+
   return (
     <>
-      <div className='container pt-4'>
-        <HomeHero animes={staticCarouselData} />
-      </div>
+      <Suspense fallback={<HomeHeroSkeleton />}>
+        <HomeHero animes={featuredAnime} />
+      </Suspense>
       
       <div className="container space-y-6 py-4 md:space-y-10 md:py-10">
         
@@ -85,9 +65,7 @@ async function HomeContent() {
 function HomeSkeleton() {
   return (
     <>
-      <div className='container pt-4'>
-        <Skeleton className="h-[50vh] md:h-[60vh] w-full rounded-xl" />
-      </div>
+      <HomeHeroSkeleton />
       <div className="container space-y-12 py-12">
         <div>
           <Skeleton className="h-8 w-48 mb-6" />
