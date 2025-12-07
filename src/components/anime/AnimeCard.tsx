@@ -4,52 +4,49 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Flame, PlayCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Badge } from '../ui/badge';
+import { cleanSlug as cleanSlugUtil } from '@/lib/utils';
 
-function getSeriesSlugFromUrl(url?: string, defaultSlug?: string): string {
-    if (!url || !url.startsWith('/anichin/episode/')) {
-        return cleanSlug(defaultSlug || '');
-    }
-
-    // Example url: /anichin/episode/renegade-immortal-episode-111-subtitle-indonesia/
-    const episodeSlug = url.split('/')[3] || '';
-    
-    // Extracts 'renegade-immortal' from 'renegade-immortal-episode-111-subtitle-indonesia'
-    const seriesSlug = episodeSlug.replace(/-episode-.*$/, '');
-
-    return seriesSlug || cleanSlug(defaultSlug || '');
-}
-
+// This specific cleanSlug is for AnimeCard to handle complex URL-like slugs
 function cleanSlug(slug: string): string {
     if (!slug) return '';
-    // Handle Otakudesu URLs specifically
-    if (slug.includes('otakudesu.best/anime/')) {
-        try {
-            const url = new URL(slug);
-            const pathParts = url.pathname.split('/').filter(Boolean);
+    
+    // Handle full URLs from various sources
+    try {
+        const url = new URL(slug);
+        const pathParts = url.pathname.split('/').filter(Boolean);
+        // Find the most likely slug part, typically the last one
+        if (pathParts.length > 0) {
             return pathParts[pathParts.length - 1];
-        } catch (e) {
-            const parts = slug.split('/');
-            return parts[parts.length - 1] || slug;
         }
-    }
-    // Handle Anichin URLs from Donghua API
-    if (slug.startsWith('/anichin/')) {
-        const parts = slug.split('/').filter(Boolean);
-        // Assumes URL is like /anichin/anime/the-slug/
-        if (parts[0] === 'anichin' && parts[1] === 'anime' && parts[2]) {
-            return parts[2];
-        }
+    } catch (e) {
+        // Not a full URL, process as a path or simple slug
     }
 
-    // Default case for simple slugs
+    // Handle path-like slugs e.g., /anime/slug-name/
+    const pathParts = slug.split('/').filter(Boolean);
+    if (pathParts.length > 1) {
+        // Handle cases like /anichin/anime/the-slug/ or /anime/slug-name
+        const animeIndex = pathParts.indexOf('anime');
+        if (animeIndex !== -1 && pathParts[animeIndex + 1]) {
+            return pathParts[animeIndex + 1];
+        }
+        const filmIndex = pathParts.indexOf('film');
+         if (filmIndex !== -1 && pathParts[filmIndex + 1]) {
+            return pathParts[filmIndex + 1];
+        }
+        // Return the last part if no specific pattern matches
+        return pathParts[pathParts.length - 1];
+    }
+    
+    // Return the slug as is if it's simple
     return slug;
 }
 
-export function AnimeCard({ anime, className, rank }: AnimeCardProps) {
+
+export function AnimeCard({ anime, className, rank }: { anime: Anime; className?: string; rank?: number; }) {
   if (!anime) return null;
 
-  // Use the 'url' for Donghua if available to get the correct series slug
-  const safeSlug = anime.type === 'Donghua' ? getSeriesSlugFromUrl(anime.url, anime.slug) : cleanSlug(anime.slug);
+  const safeSlug = cleanSlug(anime.slug);
   const episodeText = anime.latestEpisode?.title || anime.current_episode;
   
   return (
