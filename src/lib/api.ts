@@ -239,26 +239,21 @@ export async function getAnimeDetails(slug: string): Promise<AnimeDetail | null>
         }
     }
 
-    const animeData = await fetcher<{ data: AnimeDetail }>(`anime/${safeSlug}`, [`anime:${safeSlug}`]);
-    
-    // Check if the standard anime endpoint returns valid data
-    if (animeData && animeData.data && animeData.data.episode_lists && animeData.data.episode_lists.length > 0) {
-      return animeData.data;
+    // Try Donghua API next as it has a specific detail endpoint
+    const donghuaDetails = await getDonghuaDetails(safeSlug);
+    if (donghuaDetails && donghuaDetails.episode_lists && donghuaDetails.episode_lists.length > 0) {
+        return donghuaDetails;
     }
   
-    // If the standard anime endpoint fails or has no episodes, try the Donghua detail endpoint.
-    try {
-        const donghuaDetails = await getDonghuaDetails(safeSlug);
-        if(donghuaDetails) {
-            return donghuaDetails;
-        }
-    } catch (e) {
-        console.error("Failed to fetch Donghua details, falling back to original data if available.", e);
-    }
-    
-    // Fallback to original anime data even if it has no episodes
+    // Fallback to standard Otakudesu API
+    const animeData = await fetcher<{ data: AnimeDetail }>(`anime/${safeSlug}`, [`anime:${safeSlug}`]);
     if (animeData && animeData.data) {
         return animeData.data;
+    }
+
+    // If all else fails, use the partial donghua data if we fetched it
+    if (donghuaDetails) {
+        return donghuaDetails;
     }
 
     return null;
@@ -463,5 +458,3 @@ export async function getMovies(page: number = 1): Promise<PaginatedAnime | null
         }
     }
 }
-
-    
