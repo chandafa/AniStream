@@ -328,7 +328,6 @@ export async function getEpisodeStream(slug: string): Promise<EpisodeStreamData 
 }
 
 export async function searchAnime(keyword: string, page: number = 1): Promise<PaginatedAnime | null> {
-    // Fetch from multiple APIs
     const animePromise = fetcher<{ search_results: Anime[] }>(`search/${keyword}?page=${page}`);
     const donghuaPromise = searchDonghua(keyword, page);
     const winbuPromise = fetcher<{ anime: Anime[] }>(`search?q=${keyword}&page=${page}`, [], FOURTH_BACKUP_API_BASE_URL);
@@ -340,7 +339,6 @@ export async function searchAnime(keyword: string, page: number = 1): Promise<Pa
     const donghua = donghuaRes ?? [];
     const winbu = winbuRes?.anime ?? [];
     
-    // Combine and remove duplicates that might come from all APIs
     const combined = [...anime, ...donghua, ...winbu];
     const uniqueAnimes = Array.from(new Map(combined.map(item => [cleanSlug(item.slug), item])).values());
     
@@ -348,7 +346,7 @@ export async function searchAnime(keyword: string, page: number = 1): Promise<Pa
         anime: uniqueAnimes,
         pagination: {
             currentPage: page,
-            hasNextPage: uniqueAnimes.length > 0, // Basic assumption
+            hasNextPage: uniqueAnimes.length > 0,
             totalPages: page + (uniqueAnimes.length > 0 ? 1 : 0),
         }
     };
@@ -438,8 +436,8 @@ export async function getMovies(page: number = 1): Promise<PaginatedAnime | null
         anime: data.anime,
         pagination: {
             currentPage: page,
-            hasNextPage: data.anime.length > 0, // Simple check
-            totalPages: page + 1 // Assume there's always a next page if results are returned
+            hasNextPage: data.anime.length > 0,
+            totalPages: page + 1 
         }
     }
 }
