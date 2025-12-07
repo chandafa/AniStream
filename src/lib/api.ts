@@ -61,48 +61,70 @@ export async function getHomeData(): Promise<HomeData | null> {
     }
   };
 
-  // 1. Try Primary API
-  let data = await fetcher<HomeApiResponse>('home', ['home'], API_BASE_URL);
-  
-  // 2. If primary fails, try Backup API
-  if (!data || !data.data || !data.data.trending_anime || data.data.trending_anime.length === 0) {
-    console.log("Primary API failed or returned no data. Trying backup API...");
-    data = await fetcher<HomeApiResponse>('home', ['home'], BACKUP_API_BASE_URL);
+  // 1. Try Primary API (Otakudesu via Sankavollerei)
+  console.log("Attempting to fetch from primary API...");
+  let primaryData = await fetcher<HomeApiResponse>('home', ['home'], API_BASE_URL);
+  if (primaryData && primaryData.data && primaryData.data.trending_anime && primaryData.data.trending_anime.length > 0) {
+    console.log("Successfully fetched from primary API.");
+    return {
+      trending: primaryData.data.trending_anime ?? [],
+      ongoing_anime: primaryData.data.ongoing_anime ?? [],
+      latest_episodes: primaryData.data.latest_episode_anime ?? [],
+      complete_anime: primaryData.data.complete_anime ?? [],
+      featured: primaryData.data.featured ?? [],
+      genres: [],
+    };
   }
 
+  // 2. If primary fails, try Backup API
+  console.log("Primary API failed or returned no data. Trying backup API...");
+  let backupData = await fetcher<HomeApiResponse>('home', ['home'], BACKUP_API_BASE_URL);
+  if (backupData && backupData.data && backupData.data.trending_anime && backupData.data.trending_anime.length > 0) {
+    console.log("Successfully fetched from backup API.");
+    return {
+      trending: backupData.data.trending_anime ?? [],
+      ongoing_anime: backupData.data.ongoing_anime ?? [],
+      latest_episodes: backupData.data.latest_episode_anime ?? [],
+      complete_anime: backupData.data.complete_anime ?? [],
+      featured: backupData.data.featured ?? [],
+      genres: [],
+    };
+  }
+  
   // 3. If backup also fails, try Third Backup API
-  if (!data || !data.data || !data.data.trending_anime || data.data.trending_anime.length === 0) {
-    console.log("Second API failed or returned no data. Trying third backup API...");
-    data = await fetcher<HomeApiResponse>('home?page=1', ['home'], THIRD_BACKUP_API_BASE_URL);
+  console.log("Backup API failed or returned no data. Trying third backup API...");
+  let thirdData = await fetcher<HomeApiResponse>('home?page=1', ['home'], THIRD_BACKUP_API_BASE_URL);
+   if (thirdData && thirdData.data && thirdData.data.trending_anime && thirdData.data.trending_anime.length > 0) {
+    console.log("Successfully fetched from third backup API.");
+    return {
+      trending: thirdData.data.trending_anime ?? [],
+      ongoing_anime: thirdData.data.ongoing_anime ?? [],
+      latest_episodes: thirdData.data.latest_episode_anime ?? [],
+      complete_anime: thirdData.data.complete_anime ?? [],
+      featured: thirdData.data.featured ?? [],
+      genres: [],
+    };
   }
 
   // 4. If third backup also fails, try Fourth Backup API (Winbu)
-  if (!data || !data.data || !data.data.trending_anime || data.data.trending_anime.length === 0) {
-    console.log("Third API failed or returned no data. Trying fourth backup API (Winbu)...");
-    const winbuData = await fetcher<{ anime: Anime[] }>('home', ['home'], FOURTH_BACKUP_API_BASE_URL);
-    if(winbuData && winbuData.anime) {
-      return {
-        trending: winbuData.anime,
-        ongoing_anime: [],
-        latest_episodes: [],
-        complete_anime: [],
-        featured: [],
-        genres: [],
-      }
+  console.log("Third API failed or returned no data. Trying fourth backup API (Winbu)...");
+  const winbuData = await fetcher<{ anime: Anime[] }>('home', ['home'], FOURTH_BACKUP_API_BASE_URL);
+  if(winbuData && winbuData.anime && winbuData.anime.length > 0) {
+    console.log("Successfully fetched from fourth backup API (Winbu).");
+    return {
+      trending: winbuData.anime,
+      ongoing_anime: [],
+      latest_episodes: [],
+      complete_anime: [],
+      featured: [],
+      genres: [],
     }
   }
 
-  if (!data || !data.data) return null;
-
-  return {
-    trending: data.data.trending_anime ?? [],
-    ongoing_anime: data.data.ongoing_anime ?? [],
-    latest_episodes: data.data.latest_episode_anime ?? [],
-    complete_anime: data.data.complete_anime ?? [],
-    featured: data.data.featured ?? [],
-    genres: [],
-  };
+  console.log("All APIs failed to return data for homepage.");
+  return null;
 }
+
 
 // --- Donghua Specific Functions ---
 
@@ -441,3 +463,5 @@ export async function getMovies(page: number = 1): Promise<PaginatedAnime | null
         }
     }
 }
+
+    
