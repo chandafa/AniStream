@@ -167,11 +167,11 @@ export function AppHeader() {
                                 </NavigationMenuContent>
                             </>
                          ) : (
-                            <Link href={link.href} passHref>
-                                <NavigationMenuLink className={cn(navigationMenuTriggerStyle(), "bg-transparent text-xs", pathname === link.href ? "text-primary" : "text-foreground/60")}>
+                            <NavigationMenuLink asChild>
+                                <Link href={link.href} className={cn(navigationMenuTriggerStyle(), "bg-transparent text-xs", pathname === link.href ? "text-primary" : "text-foreground/60")}>
                                 {link.label}
-                                </NavigationMenuLink>
-                            </Link>
+                                </Link>
+                            </NavigationMenuLink>
                          )}
                     </NavigationMenuItem>
                 ))}
