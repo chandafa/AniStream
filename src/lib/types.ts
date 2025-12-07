@@ -70,6 +70,7 @@ export interface AnimeDetail extends Anime {
   synopsis: string;
   genres: { name: string; slug: string }[];
   episode_lists: Episode[];
+  episodes?: Episode[]; // for winbu api
   alter_title?: string;
   episodes_count?: string;
 }
@@ -183,5 +184,3 @@ export interface HistoryItem {
     episodeSlug: string;
     watchedAt: Timestamp;
 }
-
-    

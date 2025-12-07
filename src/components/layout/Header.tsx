@@ -24,6 +24,7 @@ import { ThemeToggle } from '../theme-toggle';
 const navLinks = [
   { href: '/', label: 'Home' },
   { href: '/anime-list', label: 'Anime List' },
+  { href: '/movies', label: 'Movies' },
   { href: '/schedule', label: 'Jadwal Rilis' },
   { href: '/category/ongoing', label: 'On-Going Anime' },
   { href: '/genres', label: 'Genre List' },

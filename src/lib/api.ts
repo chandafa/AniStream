@@ -1,4 +1,5 @@
 
+
 import {
   Anime,
   AnimeDetail,
@@ -20,6 +21,8 @@ import axios from 'axios';
 const API_BASE_URL = 'https://www.sankavollerei.com/anime';
 const BACKUP_API_BASE_URL = 'https://www.sankavollerei.com/anime/samehadaku';
 const THIRD_BACKUP_API_BASE_URL = 'https://www.sankavollerei.com/anime/animasu';
+const FOURTH_BACKUP_API_BASE_URL = 'https://www.sankavollerei.com/anime/winbu';
+
 
 async function fetcher<T>(path: string, tags?: string[], baseUrl: string = API_BASE_URL): Promise<T | null> {
   const fullUrl = path.startsWith('http') ? path : `${baseUrl}/${path}`;
@@ -67,6 +70,22 @@ export async function getHomeData(): Promise<HomeData | null> {
   if (!data || !data.data || !data.data.trending_anime || data.data.trending_anime.length === 0) {
     console.log("Second API failed or returned no data. Trying third backup API...");
     data = await fetcher<HomeApiResponse>('home?page=1', ['home'], THIRD_BACKUP_API_BASE_URL);
+  }
+
+  // 4. If third backup also fails, try Fourth Backup API (Winbu)
+  if (!data || !data.data || !data.data.trending_anime || data.data.trending_anime.length === 0) {
+    console.log("Third API failed or returned no data. Trying fourth backup API (Winbu)...");
+    const winbuData = await fetcher<{ anime: Anime[] }>('home', ['home'], FOURTH_BACKUP_API_BASE_URL);
+    if(winbuData && winbuData.anime) {
+      return {
+        trending: winbuData.anime,
+        ongoing_anime: [],
+        latest_episodes: [],
+        complete_anime: [],
+        featured: [],
+        genres: [],
+      }
+    }
   }
 
   if (!data || !data.data) return null;
@@ -149,6 +168,16 @@ async function getDonghuaEpisodeStream(slug: string): Promise<EpisodeStreamData 
 export async function getAnimeDetails(slug: string): Promise<AnimeDetail | null> {
     const safeSlug = cleanSlug(slug);
     
+    // Prioritize Winbu API for detail fetching
+    const winbuEndpoints = ['anime', 'series', 'film'];
+    for (const endpoint of winbuEndpoints) {
+        const winbuData = await fetcher<AnimeDetail>(`${endpoint}/${safeSlug}`, [`anime:${safeSlug}`], FOURTH_BACKUP_API_BASE_URL);
+        if (winbuData && (winbuData.episode_lists || winbuData.episodes)) {
+            if(!winbuData.episode_lists) winbuData.episode_lists = winbuData.episodes;
+            return winbuData;
+        }
+    }
+
     const animeData = await fetcher<{ data: AnimeDetail }>(`anime/${safeSlug}`, [`anime:${safeSlug}`]);
     
     // Check if the standard anime endpoint returns valid data
@@ -175,7 +204,15 @@ export async function getAnimeDetails(slug: string): Promise<AnimeDetail | null>
 }
 
 export async function getEpisodeStream(slug: string): Promise<EpisodeStreamData | null> {
-  // Try standard anime endpoint first
+  // Try Winbu API first
+  const winbuData = await fetcher<EpisodeStreamData>(`episode/${slug}`, [`episode:${slug}`], FOURTH_BACKUP_API_BASE_URL);
+  if (winbuData && winbuData.stream_url) {
+      const animeDetails = await getAnimeDetails(winbuData.anime.slug);
+      winbuData.all_episodes = animeDetails?.episode_lists ?? [];
+      return winbuData;
+  }
+    
+  // Try standard anime endpoint
   const animeData = await fetcher<{ data: EpisodeStreamData }>(`episode/${slug}`, [`episode:${slug}`]);
 
   if (animeData?.data) {
@@ -252,17 +289,20 @@ export async function getEpisodeStream(slug: string): Promise<EpisodeStreamData 
 }
 
 export async function searchAnime(keyword: string, page: number = 1): Promise<PaginatedAnime | null> {
-    // Fetch from both APIs
+    // Fetch from multiple APIs
     const animePromise = fetcher<{ search_results: Anime[] }>(`search/${keyword}?page=${page}`);
     const donghuaPromise = searchDonghua(keyword, page);
+    const winbuPromise = fetcher<{ anime: Anime[] }>(`search?q=${keyword}&page=${page}`, [], FOURTH_BACKUP_API_BASE_URL);
 
-    const [animeRes, donghuaRes] = await Promise.all([animePromise, donghuaPromise]);
+
+    const [animeRes, donghuaRes, winbuRes] = await Promise.all([animePromise, donghuaPromise, winbuPromise]);
 
     const anime = animeRes?.search_results ?? [];
     const donghua = donghuaRes ?? [];
+    const winbu = winbuRes?.anime ?? [];
     
-    // Combine and remove duplicates that might come from both APIs
-    const combined = [...anime, ...donghua];
+    // Combine and remove duplicates that might come from all APIs
+    const combined = [...anime, ...donghua, ...winbu];
     const uniqueAnimes = Array.from(new Map(combined.map(item => [cleanSlug(item.slug), item])).values());
     
     return {
@@ -349,4 +389,18 @@ export async function getSchedule(): Promise<ScheduleDay[] | null> {
 export async function getGenres(): Promise<Genre[] | null> {
     const data = await fetcher<{ data: Genre[] }>('genre', ['genres']);
     return data?.data ?? null;
+}
+
+export async function getMovies(page: number = 1): Promise<PaginatedAnime | null> {
+    const data = await fetcher<{ anime: Anime[], pagination: any }>(`film?page=${page}`, [], FOURTH_BACKUP_API_BASE_URL);
+    if (!data || !data.anime) return null;
+    
+    return {
+        anime: data.anime,
+        pagination: {
+            currentPage: page,
+            hasNextPage: data.anime.length > 0, // Simple check
+            totalPages: page + 1 // Assume there's always a next page if results are returned
+        }
+    }
 }
