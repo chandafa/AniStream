@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { Search, User, Bookmark, History as HistoryIcon, LogOut, LogIn, ChevronDown } from 'lucide-react';
+import { Search, User, Bookmark, History as HistoryIcon, LogOut, LogIn, ChevronDown, Film, Tv } from 'lucide-react';
 import { AniStreamLogo } from '@/components/icons';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -34,12 +34,11 @@ import React from 'react';
 const navLinks = [
   { href: '/', label: 'Home' },
   { href: '/anime-list', label: 'Anime List' },
-  { href: '/movies', label: 'Movies' },
   { href: '/schedule', label: 'Jadwal Rilis' },
   { href: '/genres', label: 'Genre List' },
 ];
 
-const components: { title: string; href: string; description: string }[] = [
+const animeComponents: { title: string; href: string; description: string }[] = [
     {
       title: "Anime Ongoing",
       href: "/category/ongoing",
@@ -52,6 +51,9 @@ const components: { title: string; href: string; description: string }[] = [
       description:
         "Daftar anime yang sudah tamat.",
     },
+]
+
+const donghuaComponents: { title: string; href: string; description: string }[] = [
     {
         title: "Donghua Ongoing",
         href: "/donghua/ongoing",
@@ -119,19 +121,49 @@ export function AppHeader() {
                     <NavigationMenuItem key={link.href}>
                          {link.label === 'Anime List' ? (
                             <>
-                                <NavigationMenuTrigger className={cn(navigationMenuTriggerStyle(), "bg-transparent text-xs", pathname.startsWith("/category") || pathname.startsWith("/donghua") ? "text-primary" : "text-foreground/60")}>Anime/Donghua</NavigationMenuTrigger>
+                                <NavigationMenuTrigger className={cn(navigationMenuTriggerStyle(), "bg-transparent text-xs", pathname.startsWith("/category") || pathname.startsWith("/donghua") ? "text-primary" : "text-foreground/60")}>Category</NavigationMenuTrigger>
                                 <NavigationMenuContent>
-                                <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2 lg:w-[600px] ">
-                                    {components.map((component) => (
-                                    <ListItem
-                                        key={component.title}
-                                        title={component.title}
-                                        href={component.href}
-                                    >
-                                        {component.description}
-                                    </ListItem>
-                                    ))}
-                                </ul>
+                                    <div className="grid w-[400px] gap-3 p-4 md:w-[500px] lg:grid-cols-3 lg:w-[600px] ">
+                                        <div className="flex flex-col">
+                                            <h3 className="font-semibold text-sm mb-2 px-3 flex items-center gap-2"><Tv /> Anime</h3>
+                                            <ul className="flex flex-col">
+                                                {animeComponents.map((component) => (
+                                                <ListItem
+                                                    key={component.title}
+                                                    title={component.title}
+                                                    href={component.href}
+                                                >
+                                                    {component.description}
+                                                </ListItem>
+                                                ))}
+                                            </ul>
+                                        </div>
+                                         <div className="flex flex-col">
+                                            <h3 className="font-semibold text-sm mb-2 px-3 flex items-center gap-2"><Tv /> Donghua</h3>
+                                            <ul className="flex flex-col">
+                                                {donghuaComponents.map((component) => (
+                                                <ListItem
+                                                    key={component.title}
+                                                    title={component.title}
+                                                    href={component.href}
+                                                >
+                                                    {component.description}
+                                                </ListItem>
+                                                ))}
+                                            </ul>
+                                        </div>
+                                         <div className="flex flex-col">
+                                            <h3 className="font-semibold text-sm mb-2 px-3 flex items-center gap-2"><Film /> Movies</h3>
+                                            <ul className="flex flex-col">
+                                                <ListItem
+                                                    title="All Movies"
+                                                    href="/movies"
+                                                >
+                                                   Browse our collection of animated movies.
+                                                </ListItem>
+                                            </ul>
+                                        </div>
+                                    </div>
                                 </NavigationMenuContent>
                             </>
                          ) : (
@@ -234,3 +266,4 @@ const ListItem = React.forwardRef<
 })
 ListItem.displayName = "ListItem"
 
+    
