@@ -19,7 +19,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useEffect, useState, useMemo } from 'react';
 import { cleanSlug } from '@/lib/utils';
 import { cn } from '@/lib/utils';
-import type { HistoryItem } from '@/lib/types';
+import type { HistoryItem, AnimeDetail } from '@/lib/types';
 
 
 type Props = {
@@ -37,7 +37,7 @@ export default function AnimeDetailPage({ params: serverParams }: Props) {
   const firestore = useFirestore();
   const { toast } = useToast();
   
-  const [anime, setAnime] = useState<any>(null);
+  const [anime, setAnime] = useState<AnimeDetail | null>(null);
   const [loading, setLoading] = useState(true);
 
   const userDocRef = useMemoFirebase(() =>
@@ -106,7 +106,8 @@ export default function AnimeDetailPage({ params: serverParams }: Props) {
     return <div>Loading...</div>;
   }
 
-  const firstEpisode = anime.episode_lists?.[0];
+  const episodeList = anime.episode_lists || anime.episodes || [];
+  const firstEpisode = episodeList[0];
 
   return (
     <div className="container py-8">
@@ -170,9 +171,9 @@ export default function AnimeDetailPage({ params: serverParams }: Props) {
           <CardTitle className="font-headline text-2xl font-bold">Episodes</CardTitle>
         </CardHeader>
         <CardContent>
-            {anime.episode_lists && anime.episode_lists.length > 0 ? (
+            {episodeList.length > 0 ? (
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                    {anime.episode_lists.map((ep: any) => {
+                    {episodeList.map((ep: any) => {
                       const isCurrentlyWatching = currentlyWatchingSlug === ep.slug;
                       const isWatched = watchedEpisodes.has(ep.slug) && !isCurrentlyWatching;
 
@@ -195,4 +196,3 @@ export default function AnimeDetailPage({ params: serverParams }: Props) {
     </div>
   );
 }
-

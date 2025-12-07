@@ -69,8 +69,8 @@ export interface Episode {
 export interface AnimeDetail extends Anime {
   synopsis: string;
   genres: { name: string; slug: string }[];
-  episode_lists: Episode[];
-  episodes?: Episode[]; // for winbu api
+  episode_lists?: Episode[];
+  episodes?: Episode[]; // for winbu and other apis
   alter_title?: string;
   episodes_count?: string;
 }
