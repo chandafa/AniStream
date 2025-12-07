@@ -32,7 +32,7 @@ function ScheduleTabContent({ scheduleData }: { scheduleData: ScheduleDay[] | nu
             {scheduleData.map((day) => (
                 <TabsContent key={day.day} value={day.day.toLowerCase()}>
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 mt-6">
-                        {day.anime_list.map((anime) => (
+                        {day.anime_list && day.anime_list.map((anime) => (
                             <Link href={`/anime/${anime.slug}`} key={anime.slug} className="group">
                                 <Card className="overflow-hidden">
                                     <CardContent className="p-0">
