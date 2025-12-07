@@ -9,6 +9,8 @@ import { ListPlus, PlayCircle } from 'lucide-react';
 import { cleanSlug } from '@/lib/utils';
 import { GenrePills } from './GenrePills';
 import { Skeleton } from '../ui/skeleton';
+import Typewriter from 'typewriter-effect';
+import { useState } from 'react';
 
 export function HomeHeroSkeleton() {
     return (
@@ -38,17 +40,22 @@ export function HomeHeroSkeleton() {
 }
 
 export function HomeHero({ animes }: { animes: Anime[] }) {
-    const featuredAnime = animes[0];
+    const [currentIndex, setCurrentIndex] = useState(0);
+    
+    const staticAnime = animes[0]; // Used for static background and poster
+    const currentAnime = animes[currentIndex];
 
-    if (!featuredAnime) return <HomeHeroSkeleton />;
+    if (!staticAnime) return <HomeHeroSkeleton />;
+    
+    const animeTitles = animes.map(a => a.title);
 
     return (
     <div className="relative h-[60vh] md:h-[70vh] w-full overflow-hidden">
-        {/* Background Image */}
+        {/* Background Image - Static */}
         <div className="absolute inset-0">
             <Image
-                src={featuredAnime.poster}
-                alt={`Background for ${featuredAnime.title}`}
+                src={staticAnime.poster}
+                alt={`Background for ${staticAnime.title}`}
                 fill
                 className="object-cover w-full h-full scale-110"
                 priority
@@ -61,11 +68,11 @@ export function HomeHero({ animes }: { animes: Anime[] }) {
         {/* Foreground Content */}
         <div className="container relative z-10 flex h-full items-center">
             <div className="flex flex-col md:flex-row items-center gap-8 text-center md:text-left animate-fade-in-up">
-                {/* Poster */}
+                {/* Poster - Static */}
                 <div className="relative shrink-0">
                     <Image
-                        src={featuredAnime.poster}
-                        alt={`Poster for ${featuredAnime.title}`}
+                        src={staticAnime.poster}
+                        alt={`Poster for ${staticAnime.title}`}
                         width={176}
                         height={256}
                         className="h-64 w-44 object-cover rounded-lg shadow-2xl shadow-black/50"
@@ -75,24 +82,40 @@ export function HomeHero({ animes }: { animes: Anime[] }) {
                 
                 {/* Details */}
                 <div className="max-w-xl space-y-3 md:space-y-4">
-                     <h1 className="font-headline text-3xl md:text-5xl font-bold text-foreground drop-shadow-lg">
-                        {featuredAnime.title}
+                     <h1 className="font-headline text-3xl md:text-5xl font-bold text-foreground drop-shadow-lg h-24 md:h-36">
+                        <Typewriter
+                            options={{
+                                strings: animeTitles,
+                                autoStart: true,
+                                loop: true,
+                                delay: 50,
+                                deleteSpeed: 20,
+                                wrapperClassName: "font-headline text-3xl md:text-5xl font-bold text-foreground drop-shadow-lg",
+                                cursorClassName: "font-headline text-3xl md:text-5xl font-bold text-primary drop-shadow-lg"
+                            }}
+                            onInit={(typewriter) => {
+                                typewriter.callFunction(() => {
+                                    const nextIndex = (currentIndex + 1) % animes.length;
+                                    setCurrentIndex(nextIndex);
+                                  }).start();
+                            }}
+                        />
                     </h1>
                    
                     <p className="text-sm text-muted-foreground line-clamp-3">
-                        {featuredAnime.status && <span className="mr-2 rounded-sm bg-secondary px-1.5 py-0.5 text-xs font-semibold text-secondary-foreground">{featuredAnime.status}</span>}
-                        {featuredAnime.rating && <span className="mr-2">⭐ {featuredAnime.rating}</span>}
+                        {currentAnime.status && <span className="mr-2 rounded-sm bg-secondary px-1.5 py-0.5 text-xs font-semibold text-secondary-foreground">{currentAnime.status}</span>}
+                        {currentAnime.rating && <span className="mr-2">⭐ {currentAnime.rating}</span>}
                     </p>
 
                     <div className="flex gap-4 justify-center md:justify-start">
                         <Button asChild size="lg">
-                            <Link href={featuredAnime.latestEpisode ? `/watch/${cleanSlug(featuredAnime.latestEpisode.slug)}` : `/anime/${cleanSlug(featuredAnime.slug)}`}>
+                            <Link href={currentAnime.latestEpisode ? `/watch/${cleanSlug(currentAnime.latestEpisode.slug)}` : `/anime/${cleanSlug(currentAnime.slug)}`}>
                             <PlayCircle />
                             Play
                             </Link>
                         </Button>
                         <Button asChild variant="secondary" size="lg">
-                            <Link href={`/anime/${cleanSlug(featuredAnime.slug)}`}>
+                            <Link href={`/anime/${cleanSlug(currentAnime.slug)}`}>
                             <ListPlus />
                             My List
                             </Link>

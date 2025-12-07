@@ -22,7 +22,7 @@ async function HomeContent() {
     );
   }
 
-  const featuredAnime = homeData.trending?.[0] ? [homeData.trending[0]] : [];
+  const featuredAnime = homeData.trending?.slice(0, 5) ?? [];
 
   return (
     <>
