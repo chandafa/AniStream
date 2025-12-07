@@ -1,5 +1,6 @@
 
 
+
 import {
   Anime,
   AnimeDetail,
@@ -17,6 +18,8 @@ import {
 } from './types';
 import { cleanSlug } from './utils';
 import axios from 'axios';
+import { wrapper } from 'axios-cookiejar-support';
+import { CookieJar } from 'tough-cookie';
 
 const API_BASE_URL = 'https://www.sankavollerei.com/anime';
 const BACKUP_API_BASE_URL = 'https://www.sankavollerei.com/anime/samehadaku';
@@ -28,7 +31,10 @@ async function fetcher<T>(path: string, tags?: string[], baseUrl: string = API_B
   const fullUrl = path.startsWith('http') ? path : `${baseUrl}/${path}`;
 
   try {
-    const res = await axios.get(fullUrl, {
+    const jar = new CookieJar();
+    const client = wrapper(axios.create({ jar }));
+    
+    const res = await client.get(fullUrl, {
       headers: {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
       }
@@ -109,6 +115,33 @@ export async function getDonghuaHome(page: number = 1): Promise<Anime[] | null> 
     return data?.latest_release ?? null;
 }
 
+export async function getOngoingDonghua(page: number = 1): Promise<PaginatedAnime | null> {
+    const data = await fetcher<{ donghua: Anime[], pagination: any }>(`ongoing/${page}`, ['donghua-ongoing'], DONGHUA_API_BASE_URL);
+    if (!data) return null;
+    return {
+        anime: data.donghua,
+        pagination: {
+            currentPage: page,
+            hasNextPage: data.donghua.length > 0, // Simple check
+            totalPages: page + 1
+        }
+    };
+}
+
+export async function getCompletedDonghua(page: number = 1): Promise<PaginatedAnime | null> {
+    const data = await fetcher<{ donghua: Anime[], pagination: any }>(`completed/${page}`, ['donghua-completed'], DONGHUA_API_BASE_URL);
+    if (!data) return null;
+    return {
+        anime: data.donghua,
+        pagination: {
+            currentPage: page,
+            hasNextPage: data.donghua.length > 0, // Simple check
+            totalPages: page + 1
+        }
+    };
+}
+
+
 async function searchDonghua(keyword: string, page: number = 1): Promise<Anime[] | null> {
     const response = await fetcher<{ data: Anime[] }>(`search/${keyword}/${page}`, [], DONGHUA_API_BASE_URL);
     return response?.data ?? [];
@@ -164,6 +197,12 @@ async function getDonghuaEpisodeStream(slug: string): Promise<EpisodeStreamData 
         previous_episode: data.navigation?.previous_episode ? { slug: data.navigation.previous_episode.slug, episode: data.navigation.previous_episode.episode } : null,
     };
 }
+
+export async function getDonghuaSchedule(): Promise<ScheduleDay[] | null> {
+    const data = await fetcher<{ schedule: ScheduleDay[] }>(`schedule`, ['donghua-schedule'], DONGHUA_API_BASE_URL);
+    return data?.schedule ?? null;
+}
+
 
 // --- Combined Functions ---
 

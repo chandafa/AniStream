@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { Search, User, Bookmark, History as HistoryIcon, LogOut, LogIn } from 'lucide-react';
+import { Search, User, Bookmark, History as HistoryIcon, LogOut, LogIn, ChevronDown } from 'lucide-react';
 import { AniStreamLogo } from '@/components/icons';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -20,15 +20,51 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { ThemeToggle } from '../theme-toggle';
+import {
+    NavigationMenu,
+    NavigationMenuContent,
+    NavigationMenuItem,
+    NavigationMenuLink,
+    NavigationMenuList,
+    NavigationMenuTrigger,
+    navigationMenuTriggerStyle,
+  } from "@/components/ui/navigation-menu"
+import React from 'react';
 
 const navLinks = [
   { href: '/', label: 'Home' },
   { href: '/anime-list', label: 'Anime List' },
   { href: '/movies', label: 'Movies' },
   { href: '/schedule', label: 'Jadwal Rilis' },
-  { href: '/category/ongoing', label: 'On-Going Anime' },
   { href: '/genres', label: 'Genre List' },
 ];
+
+const components: { title: string; href: string; description: string }[] = [
+    {
+      title: "Anime Ongoing",
+      href: "/category/ongoing",
+      description:
+        "Daftar anime yang sedang tayang.",
+    },
+    {
+      title: "Anime Completed",
+      href: "/category/completed",
+      description:
+        "Daftar anime yang sudah tamat.",
+    },
+    {
+        title: "Donghua Ongoing",
+        href: "/donghua/ongoing",
+        description:
+          "Daftar donghua yang sedang tayang.",
+      },
+      {
+        title: "Donghua Completed",
+        href: "/donghua/completed",
+        description:
+          "Daftar donghua yang sudah tamat.",
+      },
+  ]
 
 export function AppHeader() {
   const pathname = usePathname();
@@ -77,20 +113,38 @@ export function AppHeader() {
         
         {/* Center Section: Desktop Nav */}
         <div className="hidden md:flex flex-1 justify-center">
-          <nav className="flex items-center space-x-5 text-xs font-medium">
-            {navLinks.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className={cn(
-                    "transition-colors hover:text-primary",
-                    pathname === link.href ? "text-primary" : "text-foreground/60"
-                )}
-              >
-                {link.label}
-              </Link>
-            ))}
-          </nav>
+        <NavigationMenu>
+            <NavigationMenuList>
+                {navLinks.map((link) => (
+                    <NavigationMenuItem key={link.href}>
+                         {link.label === 'Anime List' ? (
+                            <>
+                                <NavigationMenuTrigger className={cn(navigationMenuTriggerStyle(), "bg-transparent text-xs", pathname.startsWith("/category") || pathname.startsWith("/donghua") ? "text-primary" : "text-foreground/60")}>Anime/Donghua</NavigationMenuTrigger>
+                                <NavigationMenuContent>
+                                <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2 lg:w-[600px] ">
+                                    {components.map((component) => (
+                                    <ListItem
+                                        key={component.title}
+                                        title={component.title}
+                                        href={component.href}
+                                    >
+                                        {component.description}
+                                    </ListItem>
+                                    ))}
+                                </ul>
+                                </NavigationMenuContent>
+                            </>
+                         ) : (
+                            <Link href={link.href} legacyBehavior passHref>
+                                <NavigationMenuLink className={cn(navigationMenuTriggerStyle(), "bg-transparent text-xs", pathname === link.href ? "text-primary" : "text-foreground/60")}>
+                                {link.label}
+                                </NavigationMenuLink>
+                            </Link>
+                         )}
+                    </NavigationMenuItem>
+                ))}
+            </NavigationMenuList>
+        </NavigationMenu>
         </div>
 
         {/* Right Section: Search & Profile */}
@@ -152,3 +206,31 @@ export function AppHeader() {
     </header>
   );
 }
+
+
+const ListItem = React.forwardRef<
+  React.ElementRef<"a">,
+  React.ComponentPropsWithoutRef<"a">
+>(({ className, title, children, ...props }, ref) => {
+  return (
+    <li>
+      <NavigationMenuLink asChild>
+        <a
+          ref={ref}
+          className={cn(
+            "block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground",
+            className
+          )}
+          {...props}
+        >
+          <div className="text-sm font-medium leading-none">{title}</div>
+          <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
+            {children}
+          </p>
+        </a>
+      </NavigationMenuLink>
+    </li>
+  )
+})
+ListItem.displayName = "ListItem"
+
