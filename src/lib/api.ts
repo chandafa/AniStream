@@ -102,18 +102,20 @@ export async function getHomeData(): Promise<HomeData | null> {
 
 // --- Donghua Specific Functions ---
 
+const DONGHUA_API_BASE_URL = 'https://www.sankavollerei.com/anime/donghua';
+
 export async function getDonghuaHome(page: number = 1): Promise<Anime[] | null> {
-    const data = await fetcher<{ latest_release: Anime[] }>(`donghua/home/${page}`);
+    const data = await fetcher<{ latest_release: Anime[] }>(`home/${page}`, ['donghua-home'], DONGHUA_API_BASE_URL);
     return data?.latest_release ?? null;
 }
 
 async function searchDonghua(keyword: string, page: number = 1): Promise<Anime[] | null> {
-    const response = await fetcher<{ data: Anime[] }>(`donghua/search/${keyword}/${page}`);
+    const response = await fetcher<{ data: Anime[] }>(`search/${keyword}/${page}`, [], DONGHUA_API_BASE_URL);
     return response?.data ?? [];
 }
 
 async function getDonghuaDetails(slug: string): Promise<AnimeDetail | null> {
-    const donghuaData = await fetcher<AnimeDetail>(`donghua/detail/${slug}`, [`donghua:${slug}`]);
+    const donghuaData = await fetcher<AnimeDetail>(`detail/${slug}`, [`donghua:${slug}`], DONGHUA_API_BASE_URL);
     if (donghuaData) {
         if (!donghuaData.slug) {
             donghuaData.slug = slug;
@@ -124,7 +126,7 @@ async function getDonghuaDetails(slug: string): Promise<AnimeDetail | null> {
 }
 
 async function getDonghuaEpisodeStream(slug: string): Promise<EpisodeStreamData | null> {
-    const data = await fetcher<DonghuaEpisodeStreamData>(`donghua/episode/${slug}`, [`donghua-episode:${slug}`]);
+    const data = await fetcher<DonghuaEpisodeStreamData>(`episode/${slug}`, [`donghua-episode:${slug}`], DONGHUA_API_BASE_URL);
 
     if (!data) return null;
     
